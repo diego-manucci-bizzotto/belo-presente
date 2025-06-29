@@ -3,13 +3,13 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
 import {Separator} from "@/components/ui/separator";
 import {zodResolver} from "@hookform/resolvers/zod"
 import * as z from "zod";
 import {useForm} from "react-hook-form";
 import {useLogin} from "@/services/auth/login";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Loader2Icon} from "lucide-react";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -98,14 +98,14 @@ export default function Login() {
                 </div>
                 <div className="flex flex-col gap-3">
                   <Button type="submit" disabled={isPending}>
-                  {isPending ? "Entrando..." : "Entrar"}
+                  {isPending ? <Loader2Icon className="animate-spin"/> : "Entrar"}
                   </Button>
                   <div className="flex gap-4 items-center">
                     <Separator className='flex-1'/>
                     <span className="text-sm text-muted-foreground">ou</span>
                     <Separator className='flex-1'/>
                   </div>
-                  <Button variant="outline">
+                  <Button type="button" variant="outline">
                     Entrar com Google
                   </Button>
                 </div>
