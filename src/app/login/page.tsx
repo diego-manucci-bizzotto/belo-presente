@@ -12,6 +12,8 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 import {Loader2Icon} from "lucide-react";
 import Image from "next/image";
 import {useLoginGoogle} from "@/services/auth/login-google";
+import {useResetPassword} from "@/services/auth/reset-password";
+import {toast} from "sonner";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -24,6 +26,7 @@ export default function Login() {
 
   const login = useLogin();
   const loginGoogle = useLoginGoogle();
+  const resetPassword = useResetPassword();
 
   const form = useForm({
       resolver: zodResolver(schema),
@@ -33,6 +36,15 @@ export default function Login() {
       }
     }
   );
+
+  const resetPasswordHandler = () => {
+    const email = form.getValues("email");
+    if (!email) {
+      toast.error("Digite o email primeiro.");
+      return;
+    }
+    resetPassword.mutate(email);
+  }
 
   const onSubmit = async ({email, password}: Schema) => {
     login.mutate({email, password});
@@ -78,12 +90,14 @@ export default function Login() {
                         <FormItem className="w-full">
                           <div className="flex items-center justify-between w-full">
                             <FormLabel htmlFor="password">Senha</FormLabel>
-                            <a
-                              href="#"
-                              className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                            <Button
+                              type="button"
+                              variant='link'
+                              onClick={resetPasswordHandler}
+                              className="ml-auto inline-block text-sm underline-offset-4 hover:underline p-0 h-min"
                             >
                               Esqueci minha senha
-                            </a>
+                            </Button>
                           </div>
                           <FormControl>
                             <Input
