@@ -10,6 +10,7 @@ import {useForm} from "react-hook-form";
 import {useLogin} from "@/services/auth/login";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Loader2Icon} from "lucide-react";
+import Image from "next/image";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -105,8 +106,9 @@ export default function Login() {
                     <span className="text-sm text-muted-foreground">ou</span>
                     <Separator className='flex-1'/>
                   </div>
-                  <Button type="button" variant="outline">
-                    Entrar com Google
+                  <Button type="button" variant="outline" className='flex'>
+                    <Image src='/icons/google.png' alt='google' width={20} height={20}/>
+                    <span className='flex-1 pr-5'>Entrar com Google</span>
                   </Button>
                 </div>
                 <div className="text-center text-sm">
