@@ -11,6 +11,7 @@ import {useLogin} from "@/services/auth/login";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Loader2Icon} from "lucide-react";
 import Image from "next/image";
+import {useLoginGoogle} from "@/services/auth/login-google";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -21,7 +22,8 @@ type Schema = z.infer<typeof schema>;
 
 export default function Login() {
 
-  const {mutate, isPending} = useLogin();
+  const login = useLogin();
+  const loginGoogle = useLoginGoogle();
 
   const form = useForm({
       resolver: zodResolver(schema),
@@ -33,7 +35,7 @@ export default function Login() {
   );
 
   const onSubmit = async ({email, password}: Schema) => {
-    mutate({email, password});
+    login.mutate({email, password});
   };
 
   return (
@@ -98,17 +100,24 @@ export default function Login() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <Button type="submit" disabled={isPending}>
-                  {isPending ? <Loader2Icon className="animate-spin"/> : "Entrar"}
+                  <Button type="submit" disabled={login.isPending}>
+                  {login.isPending ? <Loader2Icon className="animate-spin"/> : "Entrar"}
                   </Button>
                   <div className="flex gap-4 items-center">
                     <Separator className='flex-1'/>
                     <span className="text-sm text-muted-foreground">ou</span>
                     <Separator className='flex-1'/>
                   </div>
-                  <Button type="button" variant="outline" className='flex'>
+                  <Button type="button" onClick={() => loginGoogle.mutate()} variant="outline" disabled={loginGoogle.isPending}
+                          className='flex'>
                     <Image src='/icons/google.png' alt='google' width={20} height={20}/>
-                    <span className='flex-1 pr-5'>Entrar com Google</span>
+                    {loginGoogle.isPending
+                      ? (
+                        <div className='flex-1 flex items-center justify-center'>
+                          <Loader2Icon className="animate-spin"/>
+                        </div>
+                      ) : <span className='flex-1 mr-7'>Entrar com Google</span>
+                    }
                   </Button>
                 </div>
                 <div className="text-center text-sm">
