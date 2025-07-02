@@ -27,15 +27,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthProvider>
-      <QueryProvider>
-        <html lang="pt-BR">
-          <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-            {children}
-            <Toaster richColors/>
-          </body>
-        </html>
-      </QueryProvider>
-    </AuthProvider>
+    <QueryProvider>
+      <html lang="pt-BR">
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          {children}
+          <Toaster richColors/>
+        </body>
+      </html>
+    </QueryProvider>
   );
 }

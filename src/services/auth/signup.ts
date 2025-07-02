@@ -1,18 +1,17 @@
 import {useMutation} from "@tanstack/react-query";
 import {signup} from "@/lib/firebase/auth";
-import {useAuthContext} from "@/providers/auth-provider";
 import {toast} from "sonner";
+import {useRouter} from "next/navigation";
 
 export const useSignup = () => {
-  const { setUser } = useAuthContext();
-
+  const router = useRouter();
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
       const result = await signup(email, password)
       return result.user
     },
-    onSuccess: (user) => {
-      setUser(user);
+    onSuccess: () => {
+      router.push('/dashboard');
       toast.success("Cadastro bem-sucedido!");
     },
     onError: (err) => {
