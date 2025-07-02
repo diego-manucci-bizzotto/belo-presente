@@ -127,7 +127,7 @@ export default function Login() {
                     <Image src='/icons/google.png' alt='google' width={20} height={20}/>
                     {loginGoogle.isPending
                       ? (
-                        <div className='flex-1 flex items-center justify-center'>
+                        <div className='flex-1 flex items-center justify-center mr-7'>
                           <Loader2Icon className="animate-spin"/>
                         </div>
                       ) : <span className='flex-1 mr-7'>Entrar com Google</span>
