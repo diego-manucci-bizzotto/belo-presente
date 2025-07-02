@@ -14,6 +14,7 @@ import Image from "next/image";
 import {useLoginGoogle} from "@/services/auth/login-google";
 import {useResetPassword} from "@/services/auth/reset-password";
 import {toast} from "sonner";
+import Link from 'next/link';
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -136,9 +137,9 @@ export default function Login() {
                 </div>
                 <div className="text-center text-sm">
                   Não possui uma conta?{" "}
-                  <a href="#" className="underline underline-offset-4">
+                  <Link href="/signup" className="underline underline-offset-4">
                     Cadastre-se agora
-                  </a>
+                  </Link>
                 </div>
               </div>
             </form>
