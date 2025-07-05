@@ -120,5 +120,6 @@
   body {
     font-family: 'Geist', Helvetica, sans-serif;
     @apply bg-background text-foreground;
+    background-color: #f9fafb;
   }
 }
