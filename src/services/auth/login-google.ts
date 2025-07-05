@@ -11,7 +11,7 @@ export const useLoginGoogle = () => {
       return result.user;
     },
     onSuccess: () => {
-      router.push('/dashboard');
+      router.push('/lists');
       toast.success("Login com Google bem-sucedido!");
     },
     onError: () => {

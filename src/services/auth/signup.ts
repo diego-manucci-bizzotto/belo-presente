@@ -11,7 +11,7 @@ export const useSignup = () => {
       return result.user
     },
     onSuccess: () => {
-      router.push('/dashboard');
+      router.push('/lists');
       toast.success("Cadastro bem-sucedido!");
     },
     onError: (err) => {

@@ -11,7 +11,7 @@ export const useLogin = () => {
       return result.user
     },
     onSuccess: () => {
-      router.push('/dashboard');
+      router.push('/lists');
       toast.success("Login bem-sucedido!");
     },
     onError: () => {
