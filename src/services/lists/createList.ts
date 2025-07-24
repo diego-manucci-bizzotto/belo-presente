@@ -18,7 +18,8 @@ export const useCreateList = () => {
         description,
         ownerId,
         shareId: nanoid(8),
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        active: true
       });
 
       return docRef.id;
