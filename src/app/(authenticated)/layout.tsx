@@ -15,10 +15,12 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({children,}: Readonly<{ children: React.ReactNode;}>) {
   return (
-    <body className={`${geistSans.variable} ${geistMono.variable} antialiased container mx-auto flex flex-col min-h-screen`}>
+    <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
       <AuthenticatedRoute>
         <Header />
-        {children}
+        <div className='container mx-auto'>
+          {children}
+        </div>
       </AuthenticatedRoute>
     </body>
   );
