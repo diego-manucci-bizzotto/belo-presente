@@ -49,10 +49,13 @@ export default function ListsNew() {
 
   return (
     <main className="flex flex-col gap-4 flex-grow p-4 justify-center items-center">
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle>Criar Nova Lista 📝</CardTitle>
-          <CardDescription>Preencha os detalhes da sua nova lista de presentes.</CardDescription>
+      <Card className="w-full max-w-2xl">
+        <CardHeader className='flex'>
+          <span className='text-2xl'>🎉</span>
+          <div className='flex flex-col gap-1.5'>
+            <CardTitle>Dê um nome à sua lista de presentes e adicione uma descrição criativa!</CardTitle>
+            <CardDescription>Sem pressão, você poderá mudar isso depois. Então, se quiser, mantenha tudo bem simples por agora.</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
