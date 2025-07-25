@@ -8,14 +8,16 @@ import {useRouter} from "next/navigation";
 export const useCreateList = () => {
   const router = useRouter();
   return useMutation({
-    mutationFn: async ({ title, description, ownerId }: {
+    mutationFn: async ({ title, description, category, ownerId }: {
       title: string;
       description: string;
+      category: string;
       ownerId: string;
     }) => {
       const docRef = await addDoc(collection(db, "list"), {
         title,
         description,
+        category,
         ownerId,
         shareId: nanoid(8),
         createdAt: serverTimestamp(),
