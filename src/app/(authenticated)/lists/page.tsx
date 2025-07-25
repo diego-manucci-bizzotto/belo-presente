@@ -13,6 +13,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {Separator} from "@/components/ui/separator";
+import {getEmojiByCategory} from "@/utils/utils";
 
 export default function Lists() {
   const {user} = useAuth();
@@ -24,32 +25,6 @@ export default function Lists() {
   const navigateToNewList = () => {
     router.push('/lists/new');
   }
-
-  const getEmojiByCategory = (category: string): string => {
-    const map: Record<string, string> = {
-      "Chá de Casa Nova": "🏠",
-      "Chá de Bebê": "🍼",
-      "Chá Revelação": "💙🩷",
-      "Chá de Fraldas": "🩲",
-      "Chá de Lingerie": "👙",
-      "Chá de Panela": "🧑‍🍳",
-      "Chá de Cozinha": "🍴",
-      "Casamento": "💐",
-      "Noivado": "💍",
-      "Quinze Anos": "👧",
-      "Aniversário": "🎂",
-      "Bodas": "💎",
-      "Festinha do Pet": "🐶",
-      "Festa Infantil": "👠",
-      "Formatura": "🎓",
-      "Dia dos Namorados": "💞",
-      "Natal": "🎅",
-      "Compras": "🛒",
-      "Outro": "❓",
-    };
-
-    return map[category] || "❔";
-  };
 
   return (
     <main className="flex flex-col gap-4 flex-grow p-4">
