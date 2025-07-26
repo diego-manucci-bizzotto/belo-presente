@@ -1,17 +1,14 @@
 "use client"
 
 import {Button} from "@/components/ui/button";
-import {EllipsisVertical, ExternalLink, Pen, Plus, SquarePen, Trash} from "lucide-react";
+import {EllipsisVertical, ExternalLink, Pen, Plus, Trash} from "lucide-react";
 import {useAuth} from "@/hooks/use-auth";
 import {useRouter} from "next/navigation";
 import {useGetLists} from "@/services/lists/getLists";
-import {useEffect} from "react";
 import {Badge} from "@/components/ui/badge";
 import {cn} from "@/lib/utils";
 import Link from "next/link";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {Label} from "@/components/ui/label";
-import {Input} from "@/components/ui/input";
 import {Separator} from "@/components/ui/separator";
 import {getEmojiByCategory} from "@/utils/utils";
 
@@ -57,11 +54,11 @@ export default function Lists() {
               </PopoverTrigger>
               <PopoverContent className="p-0">
                 <div className="">
-                  <Link href={`/lists/${list.id}/edit`} className="flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                  <Link href={`/lists/${list.id}/products`} className="flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
                     <Pen size={20}/>
                     Editar lista
                   </Link>
-                  <Link href={`/lists/${list.id}/edit`} className="flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                  <Link href={`/share/${list.id}/`} className="flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
                     <ExternalLink size={20}/>
                     Visitar lista
                   </Link>

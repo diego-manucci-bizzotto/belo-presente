@@ -11,10 +11,8 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Textarea} from "@/components/ui/textarea";
 import {useCreateList} from "@/services/lists/createList";
 import {useAuth} from "@/hooks/use-auth";
-import {Check, Loader2Icon} from "lucide-react";
-import {useEffect, useState} from "react";
-import {cn} from "@/lib/utils";
-import {Badge} from "@/components/ui/badge";
+import {Loader2Icon} from "lucide-react";
+import {useState} from "react";
 import CategoryButton from "@/components/lists/new/category-button";
 
 const schema = z.object({
