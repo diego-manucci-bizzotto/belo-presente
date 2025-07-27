@@ -48,7 +48,7 @@ export default function Lists() {
             </Badge>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="absolute top-4 right-4 w-8 h-8">
+                <Button variant="outline" size='icon' className="absolute top-4 right-4">
                   <EllipsisVertical />
                 </Button>
               </PopoverTrigger>
