@@ -2,7 +2,7 @@
 
 import React, {use} from "react";
 import Link from "next/link";
-import {Gift, Image, Link as LinkIcon, MessagesSquare, Palette, Settings, Users} from "lucide-react";
+import {Banknote, Gift, Image, Link as LinkIcon, MessagesSquare, Palette, Settings, Users} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {notFound, usePathname} from "next/navigation";
 import {useGetList} from "@/services/lists/getList";
@@ -72,7 +72,7 @@ export default function RootLayout({children, params}: Readonly<{ children: Reac
             <li>
               <Link href={`/lists/${listId}/payments`}
                     className=" rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
-                <LinkIcon size={20}/>
+                <Banknote size={20}/>
                 Pagamentos
               </Link>
             </li>
