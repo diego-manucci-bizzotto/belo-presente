@@ -72,7 +72,7 @@ export default function ListsNew() {
   }
 
   return (
-    <main className="flex flex-col gap-4 flex-grow p-4 justify-center items-center">
+    <div className="flex flex-col gap-4 flex-grow p-4 justify-center items-center">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='w-full max-w-2xl'>
           {currentStep === 0 && (
@@ -285,6 +285,6 @@ export default function ListsNew() {
           )}
         </form>
       </Form>
-    </main>
+    </div>
   );
 }

@@ -19,7 +19,7 @@ export default function RootLayout({children, params}: Readonly<{ children: Reac
   const lastPathSegment = pathname.split("/").pop();
 
   return (
-    <main className="flex flex-col items-start gap-4 flex-grow p-4 justify-center items-center">
+    <div className="flex flex-col items-start gap-4 flex-grow p-4 h-full">
       <div className='w-full'>
         <h1 className="text-2xl font-bold">{list.data?.title}</h1>
         <p className='text-muted-foreground'>
@@ -27,7 +27,7 @@ export default function RootLayout({children, params}: Readonly<{ children: Reac
           Para que seus convidados possam acessá-la, vá até as configurações e mude o status para pública.
         </p>
       </div>
-      <div className='w-full flex p-4 gap-8'>
+      <div className='w-full flex p-4 gap-8 h-full overflow-y-auto'>
         <div className='min-w-[200px] flex flex-col gap-2'>
           <span className='text-muted-foreground'>Funcionalidades</span>
           <ul>
@@ -94,6 +94,6 @@ export default function RootLayout({children, params}: Readonly<{ children: Reac
         </div>
         {children}
       </div>
-    </main>
+    </div>
   );
 }

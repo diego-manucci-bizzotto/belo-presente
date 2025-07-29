@@ -7,9 +7,9 @@ function RootLayout({children,}: Readonly<{ children: React.ReactNode;}>) {
   return (
     <div className={`flex flex-col min-h-screen`}>
         <Header />
-        <div className='container mx-auto'>
+        <main className='container mx-auto h-[calc(100vh-80px)]'>
           {children}
-        </div>
+        </main>
     </div>
   );
 }
