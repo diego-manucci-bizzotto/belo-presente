@@ -33,28 +33,28 @@ export default function RootLayout({children, params}: Readonly<{ children: Reac
           <ul>
             <li>
               <Link href={`/lists/${listId}/products`}
-                    className=" rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "products" && "bg-gray-100 cursor-default text-[#b1563c]")}>
                 <Gift size={20}/>
                 Presentes
               </Link>
             </li>
             <li>
               <Link href={`/lists/${listId}/gallery`}
-                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "gallery" && "bg-gray-100")}>
+                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "gallery" && "bg-gray-100 cursor-default text-[#b1563c]")}>
                 <Image size={20}/>
                 Galeria
               </Link>
             </li>
             <li>
               <Link href={`/lists/${listId}/notes`}
-                    className=" rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "notes" && "bg-gray-100 cursor-default text-[#b1563c]")}>
                 <MessagesSquare size={20}/>
                 Recados
               </Link>
             </li>
             <li>
               <Link href={`/lists/${listId}/share`}
-                    className=" rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "share" && "bg-gray-100 cursor-default text-[#b1563c]")}>
                 <LinkIcon size={20}/>
                 Compartilhar
               </Link>
@@ -64,28 +64,28 @@ export default function RootLayout({children, params}: Readonly<{ children: Reac
           <ul>
             <li>
               <Link href={`/lists/${listId}/guests`}
-                    className=" rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "guests" && "bg-gray-100 cursor-default text-[#b1563c]")}>
                 <Users size={20}/>
                 Convidados
               </Link>
             </li>
             <li>
               <Link href={`/lists/${listId}/payments`}
-                    className=" rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "payments" && "bg-gray-100 cursor-default text-[#b1563c]")}>
                 <Banknote size={20}/>
                 Pagamentos
               </Link>
             </li>
             <li>
               <Link href={`/lists/${listId}/customize`}
-                    className=" rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "customize" && "bg-gray-100 cursor-default text-[#b1563c]")}>
                 <Palette size={20}/>
                 Personalizar
               </Link>
             </li>
             <li>
               <Link href={`/lists/${listId}/settings`}
-                    className=" rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
+                    className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "settings" && "bg-gray-100 cursor-default text-[#b1563c]")}>
                 <Settings size={20}/>
                 Configurações
               </Link>
