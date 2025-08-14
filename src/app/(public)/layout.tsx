@@ -2,12 +2,12 @@
 import React from "react";
 import withPublic from "@/hocs/with-public";
 
-function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
+function Layout({children,}: Readonly<{ children: React.ReactNode; }>) {
   return (
-    <div>
+    <div className='bg-wave'>
       {children}
     </div>
   );
 }
 
-export default withPublic(RootLayout);
+export default withPublic(Layout);
