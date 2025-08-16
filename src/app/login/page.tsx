@@ -18,6 +18,14 @@ import Link from 'next/link';
 import {useEffect} from "react";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/navigation";
+import {Dancing_Script} from "next/font/google";
+import {cn} from "@/lib/utils";
+
+const DancingScript = Dancing_Script({
+  subsets: ["latin"],
+  weight: "700",
+  display: "swap",
+});
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -69,7 +77,7 @@ export default function Page() {
         <div className="flex flex-col gap-6 items-center justify-center h-full">
           <div className='flex items-center'>
             <Image src="/images/logo.svg" alt="logo" width={1024} height={1024} className="w-14 h-auto"/>
-            <h1 className="text-4xl font-bold ml-4 text-primary">Belo Presente</h1>
+            <h1 className={cn(`${DancingScript.className}`, "text-5xl font-bold ml-4 text-primary")}>Belo Presente</h1>
           </div>
           <Card className="w-full max-w-sm mb-14">
             <CardHeader>

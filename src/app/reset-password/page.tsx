@@ -3,16 +3,22 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
-import {Separator} from "@/components/ui/separator";
 import {zodResolver} from "@hookform/resolvers/zod"
 import * as z from "zod";
 import {useForm} from "react-hook-form";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Loader2Icon} from "lucide-react";
 import Image from "next/image";
-import Link from 'next/link';
 import {useResetPassword} from "@/services/auth/reset-password";
-import {useParams, useRouter, useSearchParams} from "next/navigation";
+import {useSearchParams} from "next/navigation";
+import {cn} from "@/lib/utils";
+import {Dancing_Script} from "next/font/google";
+
+const DancingScript = Dancing_Script({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
 
 const schema = z.object({
   newPassword: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
@@ -49,7 +55,7 @@ export default function Page() {
         <div className="flex flex-col gap-6 items-center justify-center h-full">
           <div className='flex items-center'>
             <Image src="/images/logo.svg" alt="logo" width={1024} height={1024} className="w-14 h-auto"/>
-            <h1 className="text-4xl font-bold ml-4 text-primary">Belo Presente</h1>
+            <h1 className={cn(`${DancingScript.className}`, "text-5xl font-bold ml-4 text-primary")}>Belo Presente</h1>
           </div>
           <Card className="w-full max-w-sm mb-14">
             <CardHeader>
