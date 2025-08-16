@@ -41,9 +41,9 @@ CREATE TABLE "verificationTokens" (
   PRIMARY KEY (identifier, token)
 );
 
-CREATE TABLE password_resets (
+CREATE TABLE password_reset (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "userId" BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   token TEXT NOT NULL UNIQUE,
   expires TIMESTAMPTZ NOT NULL
 );

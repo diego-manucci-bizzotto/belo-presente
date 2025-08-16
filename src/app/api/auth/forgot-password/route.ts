@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const expires = new Date(Date.now() + Number(process.env.RESET_PASSWORD_TOKEN_EXPIRATION_TIME));
 
     await client.query(
-      'INSERT INTO password_reset("userId", token, expires) VALUES ($1, $2, $3)',
+      'INSERT INTO password_reset(user_id, token, expires) VALUES ($1, $2, $3)',
       [user.id, token, expires]
     );
 
