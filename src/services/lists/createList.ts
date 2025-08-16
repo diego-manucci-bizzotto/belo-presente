@@ -1,6 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { db } from "@/firebase/config";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { nanoid } from "nanoid";
 import {toast} from "sonner";
 import {useRouter} from "next/navigation";
@@ -14,17 +12,17 @@ export const useCreateList = () => {
       category: string;
       ownerId: string;
     }) => {
-      const docRef = await addDoc(collection(db, "list"), {
-        title,
-        description,
-        category,
-        ownerId,
-        shareId: nanoid(8),
-        createdAt: serverTimestamp(),
-        active: true
-      });
-
-      return docRef.id;
+      // const docRef = await addDoc(collection(db, "list"), {
+      //   title,
+      //   description,
+      //   category,
+      //   ownerId,
+      //   shareId: nanoid(8),
+      //   createdAt: serverTimestamp(),
+      //   active: true
+      // });
+      //
+      // return docRef.id;
     },
     onSuccess: (listId) => {
       toast.success("Lista criada com sucesso!");

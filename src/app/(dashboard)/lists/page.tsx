@@ -2,7 +2,6 @@
 
 import {Button} from "@/components/ui/button";
 import {EllipsisVertical, ExternalLink, Pen, Plus, Trash} from "lucide-react";
-import {useAuth} from "@/hooks/use-auth";
 import {useRouter} from "next/navigation";
 import {useGetLists} from "@/services/lists/getLists";
 import {Badge} from "@/components/ui/badge";
@@ -13,7 +12,7 @@ import {Separator} from "@/components/ui/separator";
 import {getEmojiByCategory} from "@/utils/utils";
 
 export default function Lists() {
-  const {user} = useAuth();
+  const user = {}
 
   const router = useRouter();
 
@@ -25,17 +24,17 @@ export default function Lists() {
 
   return (
     <main className="flex flex-col gap-4 flex-grow p-4">
-      <div>
-        <div className="flex justify-between items-center">
+      <div className='flex justify-between items-end'>
+        <div className="flex flex-col">
           <h2 className="text-2xl font-bold">Bem-vindo(a){user?.displayName ? ", " + user?.displayName : "!"} 😁</h2>
-          <Button onClick={navigateToNewList} className="bg-[#b1563c] text-white hover:bg-[#a0452f]">
-            <Plus/>
-            Nova lista
-          </Button>
+          <p className='text-muted-foreground'>
+            Aqui você pode gerenciar e acompanhar suas listas de presentes
+          </p>
         </div>
-        <p className='text-muted-foreground'>
-          Aqui você pode gerenciar e acompanhar suas listas de presentes
-        </p>
+        <Button onClick={navigateToNewList} className="bg-[#b1563c] text-white hover:bg-[#a0452f]">
+          <Plus/>
+          Nova lista
+        </Button>
       </div>
       <div className="grid grid-cols-3 gap-4">
         {lists.data && lists.data.map(list => (

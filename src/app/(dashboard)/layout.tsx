@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import Header from "@/components/layout/header";
-import withProtected from "@/hocs/with-protected";
 
 function RootLayout({children,}: Readonly<{ children: React.ReactNode;}>) {
   return (
@@ -14,4 +13,4 @@ function RootLayout({children,}: Readonly<{ children: React.ReactNode;}>) {
   );
 }
 
-export default withProtected(RootLayout);
+export default RootLayout;

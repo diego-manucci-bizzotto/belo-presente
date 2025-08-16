@@ -1,17 +1,34 @@
+"use client"
+
 import {useMutation} from "@tanstack/react-query";
-import {resetPassword} from "@/lib/firebase/auth";
 import {toast} from "sonner";
+import {useRouter} from "next/navigation";
 
 export const useResetPassword = () => {
+  const router = useRouter();
+
   return useMutation({
-    mutationFn: async (email: string) => {
-      return await resetPassword(email)
+    mutationFn: async ({ token, newPassword }: { token: string, newPassword: string}) => {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ token, newPassword })
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao redefinir a senha");
+      }
+
+      return response.json();
     },
     onSuccess: () => {
-      toast.success("Email de redefinição de senha enviado com sucesso!");
+      router.push("/login");
+      toast.success("Senha redefinida com sucesso! Você pode fazer login agora.");
     },
     onError: () => {
-      toast.error("Erro ao enviar email de redefinição de senha. Verifique o email e tente novamente.");
+      toast.error("Erro ao redefinir a senha.");
     }
   })
 }

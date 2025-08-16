@@ -1,11 +1,10 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
 
 export default function withProtected<T>(WrappedComponent: React.ComponentType<T>) {
   return function WithProtectedWrapper(props: React.PropsWithChildren<T>) {
-    const { user, loading } = useAuth();
+    const { user, loading } = {user: null, loading: false}
     const router = useRouter();
 
     useEffect(() => {

@@ -1,11 +1,10 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import React, {PropsWithChildren, useEffect} from 'react';
-import { useAuth } from '@/hooks/use-auth';
 
 export default function withPublic<T>(WrappedComponent: React.ComponentType<T>) {
   return function WithPublicWrapper(props: PropsWithChildren<T>) {
-    const { user, loading } = useAuth();
+    const { user, loading } = {user: null, loading: false}; // Replace with actual user context or state management
     const router = useRouter();
 
     useEffect(() => {

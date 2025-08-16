@@ -1,17 +1,18 @@
 "use client"
 import Image from "next/image";
 import {Button} from "@/components/ui/button";
-import {logout} from "@/lib/firebase/auth";
 import Link from "next/link";
 import {Separator} from "@/components/ui/separator";
 import {HandCoins, LogOut, MessageCircle, ScrollText, UserRound} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {redirect, usePathname} from "next/navigation";
 import {cn} from "@/lib/utils";
+import {useSignOut} from "@/services/auth/logout";
 
 export default function Header() {
 
   const pathname = usePathname();
+  const signOut = useSignOut();
 
   const handleSupport = () => {
     redirect('/support');
@@ -21,10 +22,8 @@ export default function Header() {
     redirect('/user');
   }
 
-  const handleLogout = () => {
-    logout().then(() => {
-      redirect('/login');
-    });
+  const handleSignOut = () => {
+    signOut.mutate();
   }
 
   return (
@@ -79,7 +78,7 @@ export default function Header() {
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button size="icon" onClick={handleLogout} className='bg-[#b1563c] hover:bg-[#a0452f]'>
+            <Button size="icon" onClick={handleSignOut} className='bg-[#b1563c] hover:bg-[#a0452f]'>
               <LogOut/>
             </Button>
           </TooltipTrigger>

@@ -42,6 +42,3 @@ next-env.d.ts
 
 # intellij
 .idea
-
-# firebase
-pglite-debug.log
