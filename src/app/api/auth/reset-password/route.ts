@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
   try {
     const res = await client.query(
-      'SELECT "userId", expires, id FROM password_reset WHERE token=$1',
+      'SELECT user_id, expires, id FROM password_reset WHERE token=$1',
       [token]
     );
 
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false }, { status: 400 });
     }
 
-    const userId = res.rows[0].userId;
+    const userId = res.rows[0].user_id;
     const resetId = res.rows[0].id;
     const new_password_hash = await hash(newPassword, 10);
 
