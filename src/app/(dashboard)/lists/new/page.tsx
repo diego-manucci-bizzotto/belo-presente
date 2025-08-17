@@ -74,7 +74,12 @@ export default function ListsNew() {
   return (
     <div className="flex flex-col gap-4 flex-grow p-4 justify-center items-center">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='w-full max-w-2xl'>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='w-full max-w-2xl' onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleNextStep();
+          }
+        }}>
           {currentStep === 0 && (
             <Card className="w-full max-w-2xl">
               <CardHeader className='flex'>
