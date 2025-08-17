@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import Header from "@/components/layout/header";
+import Header from "@/components/app/header";
 
 function RootLayout({children,}: Readonly<{ children: React.ReactNode;}>) {
   return (
