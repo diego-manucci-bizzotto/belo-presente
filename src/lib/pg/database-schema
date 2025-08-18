@@ -47,3 +47,14 @@ CREATE TABLE password_reset (
   token TEXT NOT NULL UNIQUE,
   expires TIMESTAMPTZ NOT NULL
 );
+
+CREATE TABLE lists (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    category TEXT NOT NULL,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    share_id TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    active BOOLEAN DEFAULT TRUE
+);

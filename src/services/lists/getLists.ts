@@ -1,19 +1,34 @@
 import {useQuery} from "@tanstack/react-query";
+import {toast} from "sonner";
 
-export const useGetLists = (userId: string) => {
+interface GetListsResponse {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  user_id: number;
+  share_id: string;
+  active: boolean;
+}
+
+export const useGetLists = (userId?: number) => {
   return useQuery({
-    queryKey: ["lists", userId],
-    queryFn: async () => {
-      // const q = query(collection(db, "list"), where("ownerId", "==", userId));
-      // const snapshot = await getDocs(q);
-      // return snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})) as {
-      //   id: string;
-      //   title: string;
-      //   category: string;
-      //   ownerId: string;
-      //   createdAt: string;
-      //   active: number;
-      // }[];
+    queryKey: ["lists"],
+    queryFn: async () : Promise<GetListsResponse[]> => {
+      const response = await fetch('/api/lists', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        toast.error(errorData.error || "Erro ao buscar listas");
+        throw new Error(errorData.error || "Erro ao buscar listas");
+      }
+
+      return await response.json();
     },
     enabled: !!userId
   });
