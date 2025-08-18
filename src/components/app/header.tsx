@@ -37,7 +37,7 @@ export default function Header() {
   return (
     <header className="flex items-center p-4 bg-background text-white border w-full mx-auto h-20">
       <div className='flex items-center flex-1'>
-        <Image src="/images/logo.svg" alt="logo" width={1024} height={1024} className="w-12 h-auto"/>
+        <Image src="/logo.svg" alt="logo" width={1024} height={1024} className="w-12 h-auto"/>
         <h1 className={cn(`${DancingScript.className}`, "text-4xl font-bold ml-4 text-primary")}>Belo Presente</h1>
       </div>
       <div className='flex items-center flex-1 justify-center h-full py-2 gap-4'>

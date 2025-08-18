@@ -123,7 +123,7 @@
     background-color: #f9fafb;
   }
   .bg-wave {
-    background-image: url('/images/waves.svg');
+    background-image: url('/waves.svg');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
