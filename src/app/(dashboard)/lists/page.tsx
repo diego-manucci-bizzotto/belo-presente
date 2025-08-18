@@ -23,7 +23,7 @@ export default function Lists() {
   }
 
   return (
-    <main className="flex flex-col gap-4 flex-grow p-4">
+    <main className="flex flex-col gap-4 flex-grow p-4 h-full">
       <div className='flex justify-between items-end'>
         <div className="flex flex-col">
           <h2 className="text-2xl font-bold">Bem-vindo(a){user?.displayName ? ", " + user?.displayName : "!"} 😁</h2>
@@ -36,7 +36,16 @@ export default function Lists() {
           Nova lista
         </Button>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4 h-full">
+        {lists.data?.length === 0 && (
+          <div className="col-span-3 text-center p-4 flex justify-center items-center flex-col gap-8">
+            <div className='flex flex-col'>
+              <h3 className="text-lg font-semibold">Ainda não há nada por aqui!</h3>
+              <p className="text-muted-foreground">Clique no botão "Nova lista" para começar a criar sua primeira lista de presentes!</p>
+            </div>
+            <Image src="/images/gift-box.svg" alt="gift-box" width={1024} height={1024} className="w-[400px] h-auto"/>
+          </div>
+        )}
         {lists.data && lists.data.map(list => (
           <div key={list.id} className="h-26 cursor-pointer relative flex bg-white p-4 pl-6 rounded-lg border after:content-[''] after:absolute after:left-0 after:top-0 after:bottom-0 after:w-1 after:bg-[#b1563c] after:rounded-l">
             <div className='flex flex-col gap-1'>
