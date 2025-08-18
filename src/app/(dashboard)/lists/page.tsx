@@ -41,7 +41,7 @@ export default function Lists() {
           <div className="col-span-3 text-center p-4 flex justify-center items-center flex-col gap-8">
             <div className='flex flex-col'>
               <h3 className="text-lg font-semibold">Ainda não há nada por aqui!</h3>
-              <p className="text-muted-foreground">Clique no botão "Nova lista" para começar a criar sua primeira lista de presentes!</p>
+              <p className="text-muted-foreground">Clique no botão &#34;Nova lista&#34; para começar a criar sua primeira lista de presentes!</p>
             </div>
             <Image src="/images/gift-box.svg" alt="gift-box" width={1024} height={1024} className="w-[400px] h-auto"/>
           </div>
