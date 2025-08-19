@@ -111,26 +111,26 @@ export default function Header() {
           </SheetHeader>
           <div className='px-4 space-y-6'>
             <div className='space-y-2'>
-              <p className='text-sm font-semibold text-muted-foreground'>Opções</p>
+              <p className='text-sm font-semibold text-muted-foreground'>Geral</p>
               <ul className='space-y-1'>
-                <li className='p-2 rounded-md hover:bg-gray-100 transition-colors'>
+                <li>
                   <Link
                     href="/lists"
                     className={cn(
-                      "text-muted-foreground hover:text-[#b1563c] transition-colors flex items-center gap-2",
-                      pathname === "/lists" ? "text-[#b1563c]" : ""
+                      "flex w-full items-center gap-2 rounded-md p-2 text-muted-foreground transition-colors hover:bg-gray-100 hover:text-[#b1563c]",
+                      pathname === "/lists" ? "bg-gray-100 text-[#b1563c]" : ""
                     )}
                   >
                     <ScrollText/>
                     Listas
                   </Link>
                 </li>
-                <li className='p-2 rounded-md hover:bg-gray-100 transition-colors'>
+                <li>
                   <Link
                     href="/withdrawals"
                     className={cn(
-                      "text-muted-foreground hover:text-[#b1563c] transition-colors flex items-center gap-2",
-                      pathname === "/withdrawals" ? "text-[#b1563c]" : ""
+                      "flex w-full items-center gap-2 rounded-md p-2 text-muted-foreground transition-colors hover:bg-gray-100 hover:text-[#b1563c]",
+                      pathname === "/withdrawals" ? "bg-gray-100 text-[#b1563c]" : ""
                     )}
                   >
                     <HandCoins/>
@@ -142,24 +142,24 @@ export default function Header() {
             <div className='space-y-2'>
               <p className='text-sm font-semibold text-muted-foreground'>Utilidade</p>
               <ul className='space-y-1'>
-                <li className='p-2 rounded-md hover:bg-gray-100 transition-colors'>
+                <li>
                   <Link
                     href="/support"
                     className={cn(
-                      "text-muted-foreground hover:text-[#b1563c] transition-colors flex items-center gap-2",
-                      pathname === "/support" ? "text-[#b1563c]" : ""
+                      "flex w-full items-center gap-2 rounded-md p-2 text-muted-foreground transition-colors hover:bg-gray-100 hover:text-[#b1563c]",
+                      pathname === "/support" ? "bg-gray-100 text-[#b1563c]" : ""
                     )}
                   >
                     <MessageCircle/>
                     Suporte
                   </Link>
                 </li>
-                <li className='p-2 rounded-md hover:bg-gray-100 transition-colors'>
+                <li>
                   <Link
                     href="/profile"
                     className={cn(
-                      "text-muted-foreground hover:text-[#b1563c] transition-colors flex items-center gap-2",
-                      pathname === "/withdrawals" ? "text-[#b1563c]" : ""
+                      "flex w-full items-center gap-2 rounded-md p-2 text-muted-foreground transition-colors hover:bg-gray-100 hover:text-[#b1563c]",
+                      pathname === "/profile" ? "bg-gray-100 text-[#b1563c]" : ""
                     )}
                   >
                     <UserRound/>
@@ -168,11 +168,11 @@ export default function Header() {
                 </li>
                 <li className='w-full'>
                   <Button
-                    variant="ghost" // Makes the button transparent
+                    variant="ghost"
                     onClick={handleSignOut}
                     className="text-md w-full justify-start p-2 px-2! h-auto font-normal text-muted-foreground hover:text-[#b1563c] hover:bg-gray-100 transition-colors flex items-center gap-2"
                   >
-                    <LogOut className='size-6'/> {/* More appropriate icon */}
+                    <LogOut className='size-6'/>
                     Sair
                   </Button>
                 </li>
