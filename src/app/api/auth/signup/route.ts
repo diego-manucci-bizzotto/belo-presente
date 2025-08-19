@@ -24,9 +24,6 @@ export async function POST(req: NextRequest) {
 
     return new Response(JSON.stringify(result.rows[0]), {status: 201});
   } catch (error) {
-    if (error instanceof Error && error.message.includes("duplicate key")) {
-      return new Response(JSON.stringify({error: "Email já cadastrado"}), {status: 409});
-    }
     return new Response(JSON.stringify({error: "Erro ao cadastrar usuário"}), {status: 500});
   }
 }
