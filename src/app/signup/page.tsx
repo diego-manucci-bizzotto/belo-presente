@@ -72,10 +72,10 @@ export default function Page() {
             <Image src="/logo.svg" alt="logo" width={1024} height={1024} className="w-14 h-auto"/>
             <h1 className={cn(`${DancingScript.className}`, "text-5xl font-bold ml-4 text-primary")}>Belo Presente</h1>
           </div>
-          <Card className="w-full max-w-sm mb-14">
+          <Card className="w-full max-w-sm">
             <CardHeader>
               <CardTitle>Cadastre-se 👋️</CardTitle>
-              <CardDescription>Bem-vindo! Por favor, insira suas credenciais para criar uma conta.</CardDescription>
+              <CardDescription>Bem-vindo(a)! Por favor, insira suas credenciais para criar uma conta.</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
