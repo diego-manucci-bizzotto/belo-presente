@@ -11,7 +11,7 @@ interface GetListsResponse {
   active: boolean;
 }
 
-export const useGetLists = (userId?: number) => {
+export const useGetLists = () => {
   return useQuery({
     queryKey: ["lists"],
     queryFn: async () : Promise<GetListsResponse[]> => {
@@ -29,7 +29,6 @@ export const useGetLists = (userId?: number) => {
       }
 
       return await response.json();
-    },
-    enabled: !!userId
+    }
   });
 };
