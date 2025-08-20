@@ -1,25 +1,34 @@
 import {useQuery} from "@tanstack/react-query";
+import {toast} from "sonner";
 
-export const useGetList = (listId: string) => {
+interface GetListResponse {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  user_id: number;
+  share_id: string;
+  active: boolean;
+}
+
+export const useGetList = (listId: number) => {
   return useQuery({
-    queryKey: ["list", listId],
-    queryFn: async () => {
-      // const docRef = doc(db, "list", listId);
-      // const snapshot = await getDoc(docRef);
-      //
-      // if (!snapshot.exists()) {
-      //   throw new Error("List not found");
-      // }
-      //
-      // return { id: snapshot.id, ...snapshot.data() } as {
-      //   id: string;
-      //   title: string;
-      //   category: string;
-      //   ownerId: string;
-      //   createdAt: string;
-      //   active: number;
-      // };
+    queryKey: ["lists", listId],
+    queryFn: async () : Promise<GetListResponse> => {
+      const response = await fetch(`/api/lists/${listId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        toast.error(errorData.error || "Erro ao buscar lista");
+        throw new Error(errorData.error || "Erro ao buscar lista");
+      }
+
+      return await response.json();
     },
-    enabled: !!listId,
   });
 };
