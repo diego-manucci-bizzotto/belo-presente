@@ -62,7 +62,7 @@ export default function Page() {
             <Skeleton key={index} className="col-span-1 h-[144.5px] w-full rounded-md bg-gray-200 animate-pulse"/>
           ))
         )}
-        {!lists.isLoading && !hasInitialData && (
+        {!lists.isPending && !lists.isLoading && !hasInitialData && (
           <div className="col-span-3 text-center p-4 flex justify-center items-center flex-col gap-8">
             <div className='flex flex-col'>
               <h3 className="text-lg font-semibold">Ainda não há nada por aqui!</h3>
@@ -75,7 +75,7 @@ export default function Page() {
         {hasInitialData && filteredLists.map(list => (
           <List list={list} key={list.id}/>
         ))}
-        {hasInitialData && filteredLists.length === 0 && (
+        {hasInitialData && !lists.isPending && !lists.isLoading && filteredLists.length === 0 && (
           <div className="col-span-3 text-center p-4 flex justify-center items-center flex-col gap-8">
             <div className='flex flex-col'>
               <h3 className="text-lg font-semibold">Nenhuma lista encontrada!</h3>
