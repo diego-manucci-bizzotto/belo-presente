@@ -3,14 +3,18 @@ import { pool } from "@/lib/pg/database";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/next-auth/auth-options";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
     return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401 });
   }
 
-  const listId = params.id;
+  const { id: listId } = await context.params;
+
   if (!listId) {
     return new Response(JSON.stringify({ error: "ID da lista é obrigatório" }), { status: 400 });
   }
