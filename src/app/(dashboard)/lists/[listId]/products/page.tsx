@@ -95,7 +95,7 @@ const schema = z.object({
 export default function List({params}: { params: Promise<{ listId: string }> }) {
   const {listId} = use(params);
 
-  const list = useGetList(listId);
+  const list = useGetList(Number(listId));
 
   const products = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -118,21 +118,22 @@ export default function List({params}: { params: Promise<{ listId: string }> }) 
     // Aqui você pode adicionar a lógica para enviar os dados do formulário
   }
 
-  if (!listId) return notFound();
-
   return (
     <>
       <div className='w-full flex flex-col gap-4'>
-        <div className='flex justify-between items-center'>
+        <div className='flex justify-between items-center gap-4'>
           <Input
             placeholder='Filtrar produtos...'
-            className='w-full max-w-sm'
+            className='w-full md:max-w-sm'
           />
           <Dialog>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <DialogTrigger asChild>
-                  <Button className="bg-[#b1563c] text-white hover:bg-[#a0452f]"><Plus/>Adicionar produto</Button>
+                  <Button className="bg-[#b1563c] text-white hover:bg-[#a0452f]">
+                    <Plus/>
+                    <span className='hidden md:block'>Adicionar produto</span>
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
@@ -215,13 +216,13 @@ export default function List({params}: { params: Promise<{ listId: string }> }) 
         {products.length > 0 ? (
           <div className='flex flex-col gap-4 overflow-y-auto h-full'>
             {products.map((product, index) => (
-              <Card key={index} className="flex flex-row gap-4 items-start p-4">
+              <Card key={index} className="flex flex-col md:flex-row gap-4 items-start p-4">
                 <Image
                   src="https://picsum.photos/200"
                   alt={`Produto ${index + 1}`}
                   width={100}
                   height={100}
-                  className="rounded object-cover"
+                  className="rounded object-cover w-full md:w-24 h-auto"
                 />
                 <CardContent className="p-0 flex flex-col gap-1">
                   <h3 className="text-md font-semibold">kkk</h3>
