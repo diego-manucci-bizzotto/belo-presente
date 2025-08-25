@@ -12,7 +12,7 @@ export default function RootLayout({children, params}: Readonly<{ children: Reac
 
   const {listId} = use(params);
 
-  const list = useGetList(listId);
+  const list = useGetList(Number(listId));
 
   if (!listId) return notFound();
 
@@ -30,7 +30,7 @@ export default function RootLayout({children, params}: Readonly<{ children: Reac
       <div className='w-full flex p-4 gap-8 h-full overflow-y-auto'>
         <div className='min-w-[200px] flex flex-col gap-2'>
           <span className='text-muted-foreground'>Funcionalidades</span>
-          <ul>
+          <ul className='space-y-1'>
             <li>
               <Link href={`/lists/${listId}/products`}
                     className={cn("rounded flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors", lastPathSegment == "products" && "bg-gray-100 cursor-default text-[#b1563c]")}>
