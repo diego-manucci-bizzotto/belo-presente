@@ -4,38 +4,29 @@ import type { NextRequest } from "next/server";
 
 const secret = process.env.NEXTAUTH_SECRET;
 
-const PUBLIC_APP_ROUTES = [
-  "/login",
-  "/signup",
-  "/reset-password",
-];
-
-const PROTECTED_APP_ROUTES = [
-  "/lists",
-];
-
-const PUBLIC_API_ROUTES = [
-  "/api/auth",
-];
-
-const PROTECTED_API_ROUTES = [
-  "/api/lists",
-];
-
+const PUBLIC_APP_ROUTES = ["/login", "/signup", "/reset-password",];
+const PROTECTED_APP_ROUTES = ["/lists",];
+const PUBLIC_API_ROUTES = ["/api/auth",];
+const PROTECTED_API_ROUTES = ["/api/lists",];
 
 export async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
-
   const token = await getToken({ req, secret });
 
-  handleAppRoutes(url, token);
+  const appResponse = handleAppRoutes(url, token);
+  if (appResponse) {
+    return appResponse;
+  }
 
-  handleApiRoutes(url, token);
+  const apiResponse = handleApiRoutes(url, token);
+  if (apiResponse) {
+    return apiResponse;
+  }
 
   return NextResponse.next();
 }
 
-const handleAppRoutes = (url: NextRequest["nextUrl"], token: JWT | null) => {
+const handleAppRoutes = (url: NextRequest["nextUrl"], token: JWT | null) : NextResponse | undefined => {
   if (PROTECTED_APP_ROUTES.some(route => url.pathname.startsWith(route))) {
     if (!token) {
       url.pathname = "/login";
