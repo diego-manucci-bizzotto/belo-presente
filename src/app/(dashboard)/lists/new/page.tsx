@@ -9,10 +9,10 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Textarea} from "@/components/ui/textarea";
-import {useCreateList} from "@/services/lists/createList";
 import {Loader2Icon} from "lucide-react";
 import {useState} from "react";
 import CategoryButton from "@/components/app/lists/new/category-button";
+import {useCreateList} from "@/hooks/use-create-list";
 
 const categories = [
   { name: "Chá de Casa Nova", icon: "🏠" },

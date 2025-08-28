@@ -1,5 +1,9 @@
 
-type GetListsResponse = {
+type GetListRequest = {
+  listId: number;
+}
+
+type GetListResponse = {
   id: string;
   title: string;
   description: string;
@@ -7,10 +11,10 @@ type GetListsResponse = {
   user_id: number;
   share_id: string;
   active: boolean;
-}[];
+}
 
-export const getLists = async (): Promise<GetListsResponse> => {
-  const response = await fetch('/api/lists', {
+export const getList = async ({listId} : GetListRequest) : Promise<GetListResponse> => {
+  const response = await fetch(`/api/lists/${listId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -24,4 +28,4 @@ export const getLists = async (): Promise<GetListsResponse> => {
   }
 
   return data;
-}
+};
