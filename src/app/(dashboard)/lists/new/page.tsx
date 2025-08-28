@@ -82,10 +82,12 @@ export default function Page() {
   const selectedCategory = form.watch("category");
 
   const onSubmit = async ({title, description, category}: Schema) => {
-    createList.mutate({
+    createList.mutateAsync({
       title: title.trim(),
       description: description?.trim() ?? "",
       category: category
+    }).then(() => {
+      router.push(`/lists`);
     })
   }
 

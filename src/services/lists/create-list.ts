@@ -30,5 +30,5 @@ export const createList = async (list : CreateListRequest) : Promise<CreateListR
     throw new Error(data.error);
   }
 
-  return await response.json();
+  return data;
 };
