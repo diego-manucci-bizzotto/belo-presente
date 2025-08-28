@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/next-auth/auth-options";
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ listId: string }> }
 ) {
   const session = await getServerSession(authOptions);
 
@@ -13,10 +13,10 @@ export async function GET(
     return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401 });
   }
 
-  const { id: listId } = await context.params;
+  const { listId } = await context.params;
 
   if (!listId) {
-    return new Response(JSON.stringify({ error: "ID da lista é obrigatório" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "Id da lista é obrigatório" }), { status: 400 });
   }
 
   try {
