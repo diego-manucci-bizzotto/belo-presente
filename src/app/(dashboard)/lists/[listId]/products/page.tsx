@@ -1,14 +1,12 @@
 "use client"
 
 import {use} from "react";
-import {useGetList} from "@/services/lists/getList";
-import {notFound} from "next/navigation";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
 import Image from "next/image";
 import {Card, CardContent} from "@/components/ui/card";
-import {Form, FormDescription} from "@/components/ui/form";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {
   Dialog,
   DialogClose,
@@ -22,8 +20,8 @@ import {
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Textarea} from "@/components/ui/textarea";
+import {useGetList} from "@/hooks/use-get-list";
 
 const schema = z.object({
   url: z.string().url("URL inválida").optional(),

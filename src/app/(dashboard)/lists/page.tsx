@@ -3,13 +3,13 @@
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
 import {useRouter} from "next/navigation";
-import {useGetLists} from "@/services/lists/getLists";
 import {useSession} from "next-auth/react";
 import Image from "next/image";
 import {Skeleton} from "@/components/ui/skeleton";
 import List from "@/components/app/lists/list";
 import {Input} from "@/components/ui/input";
 import {useMemo, useState} from "react";
+import {useGetLists} from "@/hooks/use-get-lists";
 
 export default function Page() {
   const { data: session } = useSession();
@@ -18,7 +18,7 @@ export default function Page() {
 
   const [filter, setFilter] = useState("");
 
-  const lists = useGetLists(session?.user.id);
+  const lists = useGetLists();
 
   const navigateToNewList = () => {
     router.push('/lists/new');

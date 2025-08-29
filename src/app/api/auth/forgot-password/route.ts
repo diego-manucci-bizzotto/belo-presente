@@ -1,4 +1,4 @@
-import {NextResponse} from "next/server";
+import {NextRequest, NextResponse} from "next/server";
 import {sendEmail} from "@/lib/nodemailer/nodemailer";
 import {pool} from "@/lib/pg/database";
 import {randomBytes} from "crypto";
@@ -8,7 +8,7 @@ interface UserResponse {
   email: string
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const { email } = await req.json();
 
   const client = await pool.connect();
@@ -37,7 +37,9 @@ export async function POST(req: Request) {
       html: `<p>Clique <a href='${resetPasswordUrl}'>aqui</a> para redefinir sua senha</p>`
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ok: true});
+  } catch (error){
+    return NextResponse.json({error: "Erro ao processar requisição"}, {status: 500});
   } finally {
     client.release();
   }

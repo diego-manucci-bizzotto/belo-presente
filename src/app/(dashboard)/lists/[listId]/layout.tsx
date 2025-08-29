@@ -5,9 +5,9 @@ import Link from "next/link";
 import {Banknote, Gift, Image, Link as LinkIcon, MessagesSquare, Palette, Settings, Users} from "lucide-react";
 import {cn} from "@/lib/utils";
 import {notFound, usePathname, useRouter} from "next/navigation";
-import {useGetList} from "@/services/lists/getList";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {useGetList} from "@/hooks/use-get-list";
 
 const FEATURES = [
   {value: "products", label: "Presentes", icon: Gift, category: "features"},

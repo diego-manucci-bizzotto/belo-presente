@@ -1,17 +1,18 @@
 "use client";
 
 import React from "react";
-import QueryProvider from "@/providers/query-provider";
 import {Toaster} from "@/components/ui/sonner";
 import {SessionProvider} from "next-auth/react";
+import {queryClient} from "@/lib/react-query/queryClient";
+import {QueryClientProvider} from "@tanstack/react-query";
 
 export default function Providers({children,}: Readonly<{ children: React.ReactNode; }>) {
   return (
     <SessionProvider>
-      <QueryProvider>
+      <QueryClientProvider client={queryClient}>
         {children}
         <Toaster richColors/>
-      </QueryProvider>
+      </QueryClientProvider>
     </SessionProvider>
   );
 }

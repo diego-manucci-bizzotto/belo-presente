@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401 });
+    return new Response(JSON.stringify({error: "Não autorizado"}), { status: 401 });
   }
 
   try {
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     return new Response(JSON.stringify(result.rows), { status: 200 });
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Erro ao buscar listas" }), { status: 500 });
+    return new Response(JSON.stringify({error: "Erro ao buscar listas"}), { status: 500 });
   }
 }
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401 });
+    return new Response(JSON.stringify({error: "Não autorizado"}), { status: 401 });
   }
 
   const {title, description, category} = await req.json();
