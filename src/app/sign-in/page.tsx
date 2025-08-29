@@ -7,15 +7,17 @@ import {Separator} from "@/components/ui/separator";
 import {zodResolver} from "@hookform/resolvers/zod"
 import * as z from "zod";
 import {useForm} from "react-hook-form";
+import {useSignIn} from "@/services/auth/sign-in";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Loader2Icon} from "lucide-react";
 import Image from "next/image";
+import {useSignInGoogle} from "@/services/auth/sign-in-google";
+import {useForgotPassword} from "@/services/auth/forgot-password";
+import {toast} from "sonner";
 import Link from 'next/link';
-import {useSignup} from "@/services/auth/signup";
-import {useLoginGoogle} from "@/services/auth/login-google";
+import {useEffect} from "react";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/navigation";
-import {useEffect} from "react";
 import {Dancing_Script} from "next/font/google";
 import {cn} from "@/lib/utils";
 
@@ -27,11 +29,7 @@ const DancingScript = Dancing_Script({
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
-  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
-  confirmPassword: z.string().min(8, "A confirmação de senha deve ter pelo menos 8 caracteres")
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"]
+  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres")
 });
 
 type Schema = z.infer<typeof schema>;
@@ -47,22 +45,31 @@ export default function Page() {
     }
   }, [session, router]);
 
-  const signup = useSignup();
-  const loginGoogle = useLoginGoogle();
+  const signIn = useSignIn();
+  const signInGoogle = useSignInGoogle();
+  const forgotPassword = useForgotPassword();
 
   const form = useForm({
       resolver: zodResolver(schema),
       defaultValues: {
         email: "",
-        password: "",
-        confirmPassword: ""
+        password: ""
       }
     }
   );
 
   const onSubmit = async ({email, password}: Schema) => {
-    signup.mutate({email, password});
+    signIn.mutate({email, password});
   };
+
+  const resetPasswordHandler = () => {
+    const email = form.getValues("email");
+    if (!email) {
+      toast.error("Digite o email primeiro.");
+      return;
+    }
+    forgotPassword.mutate(email);
+  }
 
   return (
     <div className='bg-wave'>
@@ -74,8 +81,8 @@ export default function Page() {
           </div>
           <Card className="w-full max-w-sm">
             <CardHeader>
-              <CardTitle>Cadastre-se 👋️</CardTitle>
-              <CardDescription>Bem-vindo(a)! Por favor, insira suas credenciais para criar uma conta.</CardDescription>
+              <CardTitle>Entrar 😁</CardTitle>
+              <CardDescription>Bem-vindo! Por favor, insira suas credenciais para acessar sua conta.</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -108,7 +115,18 @@ export default function Page() {
                           name="password"
                           render={({field}) => (
                             <FormItem className="w-full">
-                              <FormLabel htmlFor="password">Senha</FormLabel>
+                              <div className="flex items-center justify-between w-full">
+                                <FormLabel htmlFor="password">Senha</FormLabel>
+                                <Button
+                                  type="button"
+                                  variant='link'
+                                  onClick={resetPasswordHandler}
+                                  disabled={forgotPassword.isPending}
+                                  className="ml-auto inline-block text-sm underline-offset-4 hover:underline p-0 h-min"
+                                >
+                                  Esqueci minha senha
+                                </Button>
+                              </div>
                               <FormControl>
                                 <Input
                                   {...field}
@@ -123,41 +141,20 @@ export default function Page() {
                         />
                       </div>
                     </div>
-                    <div className="grid gap-3">
-                      <div className="flex items-center">
-                        <FormField
-                          control={form.control}
-                          name="confirmPassword"
-                          render={({field}) => (
-                            <FormItem className="w-full">
-                              <FormLabel htmlFor="password">Confirme sua senha</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="password"
-                                  id="password"
-                                  placeholder="Confirme sua senha"
-                                />
-                              </FormControl>
-                              <FormMessage/>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
                     <div className="flex flex-col gap-3">
-                      <Button type="submit" disabled={signup.isPending}>
-                        {signup.isPending ? <Loader2Icon className="animate-spin"/> : "Cadastrar"}
+                      <Button type="submit" disabled={signIn.isPending}>
+                        {signIn.isPending ? <Loader2Icon className="animate-spin"/> : "Entrar"}
                       </Button>
                       <div className="flex gap-4 items-center">
                         <Separator className='flex-1'/>
                         <span className="text-sm text-muted-foreground">ou</span>
                         <Separator className='flex-1'/>
                       </div>
-                      <Button type="button" onClick={() => loginGoogle.loginGoogle()} variant="outline"
-                              disabled={loginGoogle.isPending} className='flex'>
-                        <Image src='/icons/google.png' alt='google' width={20} height={20}/>
-                        {loginGoogle.isPending
+                      <Button type="button" onClick={() => signInGoogle.signInGoogle()} variant="outline"
+                              disabled={signInGoogle.isPending}
+                              className='flex'>
+                        <Image src='/google.png' alt='google' width={20} height={20}/>
+                        {signInGoogle.isPending
                           ? (
                             <div className='flex-1 flex items-center justify-center mr-7'>
                               <Loader2Icon className="animate-spin"/>
@@ -167,9 +164,9 @@ export default function Page() {
                       </Button>
                     </div>
                     <div className="text-center text-sm">
-                      Já possui uma conta?{" "}
-                      <Link href="/login" className="underline underline-offset-4">
-                        Entrar
+                      Não possui uma conta?{" "}
+                      <Link href="/sign-up" className="underline underline-offset-4">
+                        Cadastre-se agora
                       </Link>
                     </div>
                   </div>

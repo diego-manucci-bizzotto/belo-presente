@@ -4,7 +4,7 @@ import {useMutation} from "@tanstack/react-query";
 import {toast} from "sonner";
 import {useRouter} from "next/navigation";
 
-export const useSignup = () => {
+export const useSignUp = () => {
 
   const router = useRouter();
 

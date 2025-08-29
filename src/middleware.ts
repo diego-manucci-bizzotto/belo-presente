@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 
 const secret = process.env.NEXTAUTH_SECRET;
 
-const PUBLIC_APP_ROUTES = ["/login", "/signup", "/reset-password",];
+const PUBLIC_APP_ROUTES = ["/sign-in", "/sign-up", "/reset-password",];
 const PROTECTED_APP_ROUTES = ["/lists",];
 const PUBLIC_API_ROUTES = ["/api/auth",];
 const PROTECTED_API_ROUTES = ["/api/lists",];
@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
 const handleAppRoutes = (url: NextRequest["nextUrl"], token: JWT | null) : NextResponse | undefined => {
   if (PROTECTED_APP_ROUTES.some(route => url.pathname.startsWith(route))) {
     if (!token) {
-      url.pathname = "/login";
+      url.pathname = "/sign-in";
       return NextResponse.redirect(url);
     }
   }

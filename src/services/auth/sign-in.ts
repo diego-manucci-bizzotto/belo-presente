@@ -5,7 +5,7 @@ import {toast} from "sonner";
 import {useRouter} from "next/navigation";
 import {signIn} from "next-auth/react";
 
-export const useLogin = () => {
+export const useSignIn = () => {
   const router = useRouter();
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {

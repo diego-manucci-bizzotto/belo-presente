@@ -4,11 +4,11 @@ import {signIn} from "next-auth/react";
 import {toast} from "sonner";
 import {useState} from "react";
 
-export const useLoginGoogle = () => {
+export const useSignInGoogle = () => {
 
   const [isPending, setIsPending] = useState(false);
 
-  const loginGoogle = async () => {
+  const signInGoogle = async () => {
     setIsPending(true);
     const response = await signIn("google", { redirect: false, callbackUrl: "/lists" });
 
@@ -27,5 +27,5 @@ export const useLoginGoogle = () => {
     }
   };
 
-  return {loginGoogle, isPending}
+  return {signInGoogle, isPending}
 }

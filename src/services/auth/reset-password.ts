@@ -24,7 +24,7 @@ export const useResetPassword = () => {
       return response.json();
     },
     onSuccess: () => {
-      router.push("/login");
+      router.push("/sign-in");
       toast.success("Senha redefinida com sucesso! Você pode fazer login agora.");
     },
     onError: () => {
