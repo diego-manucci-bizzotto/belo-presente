@@ -12,8 +12,6 @@ export const useSignInGoogle = () => {
     setIsPending(true);
     const response = await signIn("google", { redirect: false, callbackUrl: "/lists" });
 
-    console.log(response);
-
     if (response?.error) {
       toast.error("Erro ao fazer login com Google.");
       setIsPending(false);

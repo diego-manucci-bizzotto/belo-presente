@@ -1,0 +1,33 @@
+import { Database} from "@/lib/pg/database";
+import {PoolClient} from "pg";
+
+export const userDao = {
+  async findUserByEmail(email: string, client?: PoolClient) {
+    const db = Database.getInstance();
+    const runner = client || db;
+    const { rows } = await runner.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+    return rows[0];
+  },
+
+  async createUser({ email, passwordHash } : { email: string; passwordHash: string }, client?: PoolClient) {
+    const db = Database.getInstance();
+    const runner = client || db;
+    const { rows } = await runner.query(
+      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email",
+      [email, passwordHash]
+    );
+    return rows[0];
+  },
+
+  async updateUserPassword(userId: string, passwordHash: string, client?: PoolClient) {
+    const db = Database.getInstance();
+    const runner = client || db;
+    await runner.query(
+      "UPDATE users SET password_hash=$1 WHERE id=$2",
+      [passwordHash, userId]
+    );
+  },
+};

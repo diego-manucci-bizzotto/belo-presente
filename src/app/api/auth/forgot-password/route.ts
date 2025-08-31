@@ -1,46 +1,40 @@
 import {NextRequest, NextResponse} from "next/server";
 import {sendEmail} from "@/lib/nodemailer/nodemailer";
-import {pool} from "@/lib/pg/database";
 import {randomBytes} from "crypto";
-
-interface UserResponse {
-  id: number,
-  email: string
-}
+import {Database} from "@/lib/pg/database";
+import {userDao} from "@/daos/user-dao";
+import {passwordResetDao} from "@/daos/password-reset-dao";
 
 export async function POST(req: NextRequest) {
-  const { email } = await req.json();
-
-  const client = await pool.connect();
-
   try {
-    const userResponse = await client.query<UserResponse>('SELECT id, email FROM users WHERE email=$1', [email]);
-    if (userResponse.rows.length === 0) {
-      return NextResponse.json({ok: true});
-    }
+    const { email } = await req.json();
+    const db = Database.getInstance();
 
-    const user = userResponse.rows[0];
+    await db.transaction(async (client) => {
+      const user = await userDao.findUserByEmail(email, client);
 
-    const token = randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + Number(process.env.RESET_PASSWORD_TOKEN_EXPIRATION_TIME));
+      if (!user) {
+        return;
+      }
 
-    await client.query(
-      'INSERT INTO password_reset(user_id, token, expires) VALUES ($1, $2, $3)',
-      [user.id, token, expires]
-    );
+      const token = randomBytes(32).toString("hex");
+      const expires = new Date(Date.now() + Number(process.env.RESET_PASSWORD_TOKEN_EXPIRATION_TIME));
 
-    const resetPasswordUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
-    await sendEmail({
-      to: `${user.email}`,
-      subject: "Alterar senha",
-      text: `Clique aqui: ${resetPasswordUrl}`,
-      html: `<p>Clique <a href='${resetPasswordUrl}'>aqui</a> para redefinir sua senha</p>`
+      await passwordResetDao.createPasswordResetToken({userId: user.id, token, expires}, client);
+
+      const resetPasswordUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
+
+      await sendEmail({
+        to: `${user.email}`,
+        subject: "Alterar senha",
+        text: `Clique aqui: ${resetPasswordUrl}`,
+        html: `<p>Clique <a href='${resetPasswordUrl}'>aqui</a> para redefinir sua senha</p>`
+      });
     });
 
     return NextResponse.json({ok: true});
+
   } catch (error){
-    return NextResponse.json({error: "Erro ao processar requisição"}, {status: 500});
-  } finally {
-    client.release();
+    return NextResponse.json({error: "Erro ao processar redefinição de senha"}, {status: 500});
   }
 }

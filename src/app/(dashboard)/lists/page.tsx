@@ -28,6 +28,8 @@ export default function Page() {
     if (!lists.data) {
       return [];
     }
+    console.log(lists.data)
+
     return lists.data.filter(list =>
       list.title.toLowerCase().includes(filter.toLowerCase())
     );

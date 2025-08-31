@@ -1,31 +1,29 @@
 import {NextResponse} from "next/server";
 import {hash} from "bcrypt";
-import {pool} from "@/lib/pg/database";
+import {Database} from "@/lib/pg/database";
+import {passwordResetDao} from "@/daos/password-reset-dao";
+import {userDao} from "@/daos/user-dao";
 
 export async function POST(req: Request) {
-  const { token, newPassword } = await req.json();
-
-  const client = await pool.connect();
-
   try {
-    const res = await client.query(
-      'SELECT user_id, expires, id FROM password_reset WHERE token=$1',
-      [token]
-    );
+    const { token, newPassword } = await req.json();
+    const db = Database.getInstance();
 
-    if (res.rows.length === 0 || new Date(res.rows[0].expires) < new Date()) {
-      return NextResponse.json({ ok: false }, { status: 400 });
-    }
+    await db.transaction(async (client) => {
+      const passwordResetToken = await passwordResetDao.findPasswordResetTokenByToken(token, client);
 
-    const userId = res.rows[0].user_id;
-    const resetId = res.rows[0].id;
-    const new_password_hash = await hash(newPassword, 10);
+      if (!passwordResetToken || new Date(passwordResetToken.expires) < new Date()) {
+        return NextResponse.json({ ok: false }, { status: 400 });
+      }
 
-    await client.query('UPDATE users SET password_hash=$1 WHERE id=$2', [new_password_hash, userId]);
-    await client.query('DELETE FROM password_reset WHERE id=$1', [resetId]);
+      const {id, user_id: userId} = passwordResetToken;
+      const newPasswordHash = await hash(newPassword, 10);
 
+      await userDao.updateUserPassword(userId, newPasswordHash, client);
+      await passwordResetDao.deletePasswordResetToken(id, client);
+    });
     return NextResponse.json({ ok: true });
-  } finally {
-    client.release();
+  } catch (error) {
+    return NextResponse.json({error: "Erro ao processar redefinição de senha"}, { status: 500 });
   }
 }

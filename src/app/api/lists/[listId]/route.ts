@@ -1,7 +1,7 @@
-import { NextRequest } from "next/server";
-import { pool } from "@/lib/pg/database";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/next-auth/auth-options";
+import {NextRequest} from "next/server";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/lib/next-auth/auth-options";
+import {listDao} from "@/daos/list-dao";
 
 export async function GET(
   req: NextRequest,
@@ -20,16 +20,13 @@ export async function GET(
   }
 
   try {
-    const result = await pool.query(
-      `SELECT id, title, description, category, user_id, share_id, active FROM lists WHERE id = $1 AND user_id = $2`,
-      [listId, session.user.id]
-    );
+    const list = await listDao.getListByIdAndUserId(listId, session.user.id.toString());
 
-    if (result.rows.length === 0) {
+    if (!list) {
       return new Response(JSON.stringify({ error: "Lista não encontrada" }), { status: 404 });
     }
 
-    return new Response(JSON.stringify(result.rows[0]), { status: 200 });
+    return new Response(JSON.stringify(list), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: "Erro ao buscar lista" }), { status: 500 });
   }

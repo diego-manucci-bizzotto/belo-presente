@@ -10,7 +10,7 @@ export const useSignUp = () => {
 
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch('/api/auth/sign-up', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
