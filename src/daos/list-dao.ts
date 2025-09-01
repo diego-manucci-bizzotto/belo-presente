@@ -1,8 +1,11 @@
-import { Database } from "@/lib/pg/database";
+import {Database} from "@/lib/pg/database";
 import {PoolClient} from "pg";
 
-export const listDao = {
-  async getListsByUserId(userId: string, client?: PoolClient) {
+export class ListDAO {
+
+  private constructor() {}
+
+  public static async getListsByUserId(userId: string, client?: PoolClient) {
     const db = Database.getInstance();
     const runner = client || db;
     const {rows} = await runner.query(
@@ -10,9 +13,9 @@ export const listDao = {
       [userId]
     );
     return rows;
-  },
+  }
 
-  async createList({title, description, category, userId, sharedId,} : { title: string; description: string; category: string; userId: string; sharedId: string; }, client?: PoolClient) {
+  public static async createList({title, description, category, userId, sharedId,}: { title: string; description: string; category: string; userId: string; sharedId: string; }, client?: PoolClient) {
     const db = Database.getInstance();
     const runner = client || db;
     const {rows} = await runner.query(
@@ -20,9 +23,9 @@ export const listDao = {
       [title, description, category, userId, sharedId]
     );
     return rows[0];
-  },
+  }
 
-  async getListByIdAndUserId(listId : string, userId : string, client?: PoolClient){
+  public static async getListByIdAndUserId(listId: string, userId: string, client?: PoolClient) {
     const db = Database.getInstance();
     const runner = client || db;
     const {rows} = await runner.query(
@@ -30,5 +33,5 @@ export const listDao = {
       [listId, userId]
     );
     return rows[0];
-  },
-};
+  }
+}

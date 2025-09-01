@@ -2,7 +2,7 @@ import {NextRequest} from "next/server";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/lib/next-auth/auth-options";
 import {nanoid} from "nanoid";
-import {listDao} from "@/daos/list-dao";
+import {ListDAO} from "@/daos/list-dao";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const lists = await listDao.getListsByUserId(session.user.id.toString());
+    const lists = await ListDAO.getListsByUserId(session.user.id.toString());
 
     console.log(lists);
 
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   try {
     const sharedId = nanoid(8);
 
-    const createdList = await listDao.createList({title, description, category, userId: session.user.id.toString(), sharedId});
+    const createdList = await ListDAO.createList({title, description, category, userId: session.user.id.toString(), sharedId});
 
     return new Response(JSON.stringify(createdList), { status: 201 });
   } catch (error) {

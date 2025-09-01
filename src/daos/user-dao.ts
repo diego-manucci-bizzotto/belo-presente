@@ -1,8 +1,11 @@
-import { Database} from "@/lib/pg/database";
-import {PoolClient} from "pg";
+import { Database } from "@/lib/pg/database";
+import { PoolClient } from "pg";
 
-export const userDao = {
-  async findUserByEmail(email: string, client?: PoolClient) {
+export class UserDAO {
+
+  private constructor() {}
+
+  public static async findUserByEmail(email: string, client?: PoolClient) {
     const db = Database.getInstance();
     const runner = client || db;
     const { rows } = await runner.query(
@@ -10,9 +13,9 @@ export const userDao = {
       [email]
     );
     return rows[0];
-  },
+  }
 
-  async createUser({ email, passwordHash } : { email: string; passwordHash: string }, client?: PoolClient) {
+  public static async createUser({ email, passwordHash }: { email: string; passwordHash: string }, client?: PoolClient) {
     const db = Database.getInstance();
     const runner = client || db;
     const { rows } = await runner.query(
@@ -20,14 +23,14 @@ export const userDao = {
       [email, passwordHash]
     );
     return rows[0];
-  },
+  }
 
-  async updateUserPassword(userId: string, passwordHash: string, client?: PoolClient) {
+  public static async updateUserPassword(userId: string, passwordHash: string, client?: PoolClient) {
     const db = Database.getInstance();
     const runner = client || db;
     await runner.query(
       "UPDATE users SET password_hash=$1 WHERE id=$2",
-      [passwordHash, userId]
+      [passwordHash, userId,]
     );
-  },
-};
+  }
+}

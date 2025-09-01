@@ -3,8 +3,8 @@ import GoogleProvider from "next-auth/providers/google";
 import PostgresAdapter from "@auth/pg-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-import {userDao} from "@/daos/user-dao";
 import {Database} from "@/lib/pg/database";
+import {UserDAO} from "@/daos/user-dao";
 
 export const authOptions: AuthOptions = {
   adapter: PostgresAdapter(Database.getPool()),
@@ -22,7 +22,7 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null;
 
-        const user = await userDao.findUserByEmail(credentials.email);
+        const user = await UserDAO.findUserByEmail(credentials.email);
 
         if (!user) return null;
 

@@ -1,6 +1,6 @@
 import {hash} from "bcrypt";
 import {NextRequest} from "next/server";
-import {userDao} from "@/daos/user-dao";
+import {UserDAO} from "@/daos/user-dao";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return new Response(JSON.stringify({error: "Email e senha são obrigatórios"}), {status: 400});
     }
 
-    const existingUser = await userDao.findUserByEmail(email);
+    const existingUser = await UserDAO.findUserByEmail(email);
 
     if (existingUser != null) {
       return new Response(JSON.stringify({ error: "Email já cadastrado" }), { status: 409 });
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await hash(password, 10);
 
-    const user = await userDao.createUser({email, passwordHash: hashedPassword});
+    const user = await UserDAO.createUser({email, passwordHash: hashedPassword});
 
     return new Response(JSON.stringify(user), {status: 201});
   } catch (error) {

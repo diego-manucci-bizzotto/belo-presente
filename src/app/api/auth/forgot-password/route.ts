@@ -2,8 +2,8 @@ import {NextRequest, NextResponse} from "next/server";
 import {sendEmail} from "@/lib/nodemailer/nodemailer";
 import {randomBytes} from "crypto";
 import {Database} from "@/lib/pg/database";
-import {userDao} from "@/daos/user-dao";
-import {passwordResetDao} from "@/daos/password-reset-dao";
+import {PasswordResetDAO} from "@/daos/password-reset-dao";
+import {UserDAO} from "@/daos/user-dao";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const db = Database.getInstance();
 
     await db.transaction(async (client) => {
-      const user = await userDao.findUserByEmail(email, client);
+      const user = await UserDAO.findUserByEmail(email, client);
 
       if (!user) {
         return;
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       const token = randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + Number(process.env.RESET_PASSWORD_TOKEN_EXPIRATION_TIME));
 
-      await passwordResetDao.createPasswordResetToken({userId: user.id, token, expires}, client);
+      await PasswordResetDAO.createPasswordResetToken({userId: user.id, token, expires}, client);
 
       const resetPasswordUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
 

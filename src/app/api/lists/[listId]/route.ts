@@ -1,7 +1,7 @@
 import {NextRequest} from "next/server";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/lib/next-auth/auth-options";
-import {listDao} from "@/daos/list-dao";
+import {ListDAO} from "@/daos/list-dao";
 
 export async function GET(
   req: NextRequest,
@@ -20,7 +20,7 @@ export async function GET(
   }
 
   try {
-    const list = await listDao.getListByIdAndUserId(listId, session.user.id.toString());
+    const list = await ListDAO.getListByIdAndUserId(listId, session.user.id.toString());
 
     if (!list) {
       return new Response(JSON.stringify({ error: "Lista não encontrada" }), { status: 404 });
