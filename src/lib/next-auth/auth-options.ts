@@ -1,17 +1,18 @@
 import {AuthOptions} from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import PostgresAdapter from "@auth/pg-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import {Database} from "@/lib/pg/database";
 import {UserDAO} from "@/daos/user-dao";
+import CustomPostgresAdapter from "@/lib/next-auth/custom-pg-adapter";
 
 export const authOptions: AuthOptions = {
-  adapter: PostgresAdapter(Database.getPool()),
+  adapter: CustomPostgresAdapter(Database.getPool()),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      //allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -24,10 +25,23 @@ export const authOptions: AuthOptions = {
 
         const user = await UserDAO.findUserByEmail(credentials.email);
 
-        if (!user) return null;
+        if (!user || !user.password_hash) return null;
 
-        const isValid = await bcrypt.compare(credentials.password, user.password_hash);
-        return isValid ? user : null;
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password_hash
+        );
+
+        if (isValid) {
+          return {
+            id: String(user.id),
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          };
+        }
+
+        return null;
       },
     }),
   ],

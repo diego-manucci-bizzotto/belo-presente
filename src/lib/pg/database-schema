@@ -1,20 +1,20 @@
--- USERS
-CREATE TABLE users (
+-- Main user table
+CREATE TABLE "user" (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name TEXT,
   email TEXT UNIQUE NOT NULL,
-  "emailVerified" TIMESTAMPTZ,
+  email_verified TIMESTAMPTZ,
   image TEXT,
   password_hash TEXT
 );
 
--- ACCOUNTS
-CREATE TABLE accounts (
+-- Links OAuth providers to a user
+CREATE TABLE account (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "userId" BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
   provider TEXT NOT NULL,
-  "providerAccountId" TEXT NOT NULL,
+  provider_account_id TEXT NOT NULL,
   refresh_token TEXT,
   access_token TEXT,
   expires_at BIGINT,
@@ -22,39 +22,42 @@ CREATE TABLE accounts (
   scope TEXT,
   id_token TEXT,
   session_state TEXT,
-  UNIQUE (provider, "providerAccountId")
+  UNIQUE (provider, provider_account_id)
 );
 
--- SESSIONS
-CREATE TABLE sessions (
+-- Stores user sessions for database session strategy
+CREATE TABLE session (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "sessionToken" TEXT UNIQUE NOT NULL,
-  "userId" BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  session_token TEXT UNIQUE NOT NULL,
+  user_id BIGINT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
   expires TIMESTAMPTZ NOT NULL
 );
 
--- VERIFICATION TOKENS
-CREATE TABLE "verificationTokens" (
+-- Stores tokens for passwordless email sign-in
+CREATE TABLE verification_token (
   identifier TEXT NOT NULL,
   token TEXT NOT NULL UNIQUE,
   expires TIMESTAMPTZ NOT NULL,
   PRIMARY KEY (identifier, token)
 );
 
+-- Your custom table for password resets
 CREATE TABLE password_reset (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
   token TEXT NOT NULL UNIQUE,
   expires TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE lists (
+-- Your custom table for lists
+CREATE TABLE list (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
     category TEXT NOT NULL,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     share_id TEXT UNIQUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     active BOOLEAN DEFAULT TRUE
 );
+

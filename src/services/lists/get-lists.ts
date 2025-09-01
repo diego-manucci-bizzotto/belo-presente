@@ -23,7 +23,5 @@ export const getLists = async (): Promise<GetListsResponse> => {
     throw new Error(data.error);
   }
 
-  console.log(data);
-
   return data;
 }

@@ -2,10 +2,20 @@ import { Database } from "@/lib/pg/database";
 import { PoolClient } from "pg";
 
 export class PasswordResetDAO {
-
   private constructor() {}
 
-  public static async createPasswordResetToken({userId, token, expires,}: { userId: string; token: string; expires: Date; }, client?: PoolClient) {
+  public static async createPasswordResetToken(
+    {
+      userId,
+      token,
+      expires,
+    }: {
+      userId: string;
+      token: string;
+      expires: Date;
+    },
+    client?: PoolClient
+  ) {
     const db = Database.getInstance();
     const runner = client || db;
     await runner.query(
@@ -14,7 +24,10 @@ export class PasswordResetDAO {
     );
   }
 
-  public static async findPasswordResetTokenByToken(token: string, client?: PoolClient): Promise<{ user_id: string; expires: Date; id: string } | undefined> {
+  public static async findPasswordResetTokenByToken(
+    token: string,
+    client?: PoolClient
+  ): Promise<{ user_id: string; expires: Date; id: string } | undefined> {
     const db = Database.getInstance();
     const runner = client || db;
     const { rows } = await runner.query(
@@ -24,7 +37,10 @@ export class PasswordResetDAO {
     return rows[0];
   }
 
-  public static async deletePasswordResetToken(tokenId: string, client?: PoolClient) {
+  public static async deletePasswordResetToken(
+    tokenId: string,
+    client?: PoolClient
+  ) {
     const db = Database.getInstance();
     const runner = client || db;
     await runner.query("DELETE FROM password_reset WHERE id=$1", [tokenId]);

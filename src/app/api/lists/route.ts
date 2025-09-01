@@ -14,8 +14,6 @@ export async function GET(req: NextRequest) {
   try {
     const lists = await ListDAO.getListsByUserId(session.user.id.toString());
 
-    console.log(lists);
-
     return new Response(JSON.stringify(lists), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({error: "Erro ao buscar listas"}), { status: 500 });
