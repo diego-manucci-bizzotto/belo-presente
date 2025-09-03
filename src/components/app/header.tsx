@@ -7,9 +7,9 @@ import {HandCoins, LogOut, Menu, MessageCircle, ScrollText, UserRound} from "luc
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {redirect, usePathname} from "next/navigation";
 import {cn} from "@/lib/utils";
-import {useSignOut} from "@/services/auth/sign-out";
 import {Dancing_Script} from "next/font/google";
 import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger} from "@/components/ui/sheet";
+import {useSignOut} from "@/hooks/use-sign-out";
 
 const DancingScript = Dancing_Script({
   subsets: ["latin"],

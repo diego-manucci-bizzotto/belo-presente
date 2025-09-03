@@ -11,13 +11,13 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 import {Loader2Icon} from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
-import {useSignUp} from "@/services/auth/sign-up";
-import {useSignInGoogle} from "@/services/auth/sign-in-google";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/navigation";
 import {useEffect} from "react";
 import {Dancing_Script} from "next/font/google";
 import {cn} from "@/lib/utils";
+import {useSignUp} from "@/hooks/use-sign-up";
+import {useSignInGoogle} from "@/hooks/use-sign-in-google";
 
 const DancingScript = Dancing_Script({
   subsets: ["latin"],

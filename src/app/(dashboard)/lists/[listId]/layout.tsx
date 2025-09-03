@@ -28,7 +28,7 @@ export default function RootLayout({children, params}: Readonly<{
   const router = useRouter();
 
   const {listId} = use(params);
-  const list = useGetList(Number(listId));
+  const list = useGetList({listId: Number(listId)});
 
   if (!listId) return notFound();
 

@@ -7,12 +7,9 @@ import {Separator} from "@/components/ui/separator";
 import {zodResolver} from "@hookform/resolvers/zod"
 import * as z from "zod";
 import {useForm} from "react-hook-form";
-import {useSignIn} from "@/services/auth/sign-in";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Loader2Icon} from "lucide-react";
 import Image from "next/image";
-import {useSignInGoogle} from "@/services/auth/sign-in-google";
-import {useForgotPassword} from "@/services/auth/forgot-password";
 import {toast} from "sonner";
 import Link from 'next/link';
 import {useEffect} from "react";
@@ -20,6 +17,9 @@ import {useSession} from "next-auth/react";
 import {useRouter} from "next/navigation";
 import {Dancing_Script} from "next/font/google";
 import {cn} from "@/lib/utils";
+import {useForgotPassword} from "@/hooks/use-forgot-password";
+import {useSignIn} from "@/hooks/use-sign-in";
+import {useSignInGoogle} from "@/hooks/use-sign-in-google";
 
 const DancingScript = Dancing_Script({
   subsets: ["latin"],
@@ -65,10 +65,10 @@ export default function Page() {
   const resetPasswordHandler = () => {
     const email = form.getValues("email");
     if (!email) {
-      toast.error("Digite o email primeiro.");
+      toast.error("Digite o email primeiro");
       return;
     }
-    forgotPassword.mutate(email);
+    forgotPassword.mutate({email});
   }
 
   return (

@@ -21,7 +21,7 @@ export const useSignIn = () => {
       router.push('/lists');
     },
     onError: () => {
-      toast.error("Erro ao fazer login. Verifique suas credenciais.");
+      toast.error("Erro ao fazer login, verifique suas credenciais");
     }
   })
 }

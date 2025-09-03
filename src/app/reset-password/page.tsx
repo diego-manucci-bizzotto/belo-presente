@@ -9,10 +9,10 @@ import {useForm} from "react-hook-form";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Loader2Icon} from "lucide-react";
 import Image from "next/image";
-import {useResetPassword} from "@/services/auth/reset-password";
 import {useSearchParams} from "next/navigation";
 import {cn} from "@/lib/utils";
 import {Dancing_Script} from "next/font/google";
+import {useResetPassword} from "@/hooks/use-reset-password";
 
 const DancingScript = Dancing_Script({
   subsets: ["latin"],

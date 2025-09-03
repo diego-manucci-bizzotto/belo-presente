@@ -1,5 +1,5 @@
 
-type GetListRequest = {
+export type GetListRequest = {
   listId: number;
 }
 

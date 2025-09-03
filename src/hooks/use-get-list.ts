@@ -1,9 +1,9 @@
 import {useQuery} from "@tanstack/react-query";
-import {getList} from "@/services/lists/get-list";
+import {getList, GetListRequest} from "@/services/lists/get-list";
 
-export const useGetList = (listId: number) => {
+export const useGetList = ({listId}: GetListRequest) => {
   return useQuery({
     queryKey: ["lists", listId],
-    queryFn:() => getList(listId),
+    queryFn:() => getList({listId}),
   });
 };

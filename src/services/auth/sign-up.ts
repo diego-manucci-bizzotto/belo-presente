@@ -1,36 +1,29 @@
 "use client";
 
-import {useMutation} from "@tanstack/react-query";
-import {toast} from "sonner";
-import {useRouter} from "next/navigation";
+export type SignUpRequest = {
+  email: string,
+  password: string
+}
 
-export const useSignUp = () => {
+type SignUpResponse = {
+  id: string,
+  email: string
+}
 
-  const router = useRouter();
-
-  return useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const response = await fetch('/api/auth/sign-up', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erro ao cadastrar usuário");
-      }
-
-      return await response.json();
+export const signUp = async ({email, password}: SignUpRequest): Promise<SignUpResponse> => {
+  const response = await fetch("/api/auth/sign-up", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
     },
-    onSuccess: () => {
-      router.push('/lists');
-      toast.success("Cadastro bem-sucedido!");
-    },
-    onError: (err) => {
-      toast.error(err instanceof Error ? err.message : "Erro ao cadastrar usuário");
-    }
-  })
+    body: JSON.stringify({email, password})
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error);
+  }
+
+  return data;
 }
