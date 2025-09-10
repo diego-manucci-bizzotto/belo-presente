@@ -16,7 +16,7 @@ interface ListProps {
   };
 }
 
-export default function List({list} : ListProps) {
+export default function ListCard({list} : ListProps) {
   return (
     <Card className="relative flex bg-white after:content-[''] after:absolute after:left-0 after:top-0 after:bottom-0 after:w-1 after:bg-[#b1563c] after:rounded-l">
       <CardHeader>

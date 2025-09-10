@@ -1,5 +1,5 @@
 
-type GetListsResponse = {
+export type GetListsResponse = {
   id: string;
   title: string;
   description: string;

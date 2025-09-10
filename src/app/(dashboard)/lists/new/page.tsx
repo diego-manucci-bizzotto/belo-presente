@@ -1,18 +1,14 @@
 "use client"
 
-import {Button} from "@/components/ui/button";
-import {useRouter} from "next/navigation";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
-import {useForm} from "react-hook-form";
-import {z} from "zod";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {Textarea} from "@/components/ui/textarea";
-import {Loader2Icon} from "lucide-react";
-import {useState} from "react";
-import CategoryButton from "@/components/app/lists/new/category-button";
-import {useCreateList} from "@/hooks/use-create-list";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form } from "@/components/ui/form";
+import { ListDetailsStep } from "@/components/app/lists/new/list-details-step";
+import { CategoryStep } from "@/components/app/lists/new/category-step";
+import { useCreateList } from "@/hooks/use-create-list";
 
 const categories = [
   { name: "Chá de Casa Nova", icon: "🏠" },
@@ -46,10 +42,17 @@ type Schema = z.infer<typeof schema>;
 
 export default function Page() {
   const router = useRouter();
-
   const createList = useCreateList();
-
   const [currentStep, setCurrentStep] = useState(0);
+
+  const form = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      title: "",
+      description: "",
+      category: "Chá de Casa Nova"
+    }
+  });
 
   const handleNextStep = async () => {
     if (currentStep === 0) {
@@ -70,18 +73,7 @@ export default function Page() {
     }
   }
 
-  const form = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      title: "",
-      description: "",
-      category: "Chá de Casa Nova"
-    }
-  });
-
-  const selectedCategory = form.watch("category");
-
-  const onSubmit = async ({title, description, category}: Schema) => {
+  const onSubmit = async ({ title, description, category }: Schema) => {
     createList.mutateAsync({
       title: title.trim(),
       description: description?.trim() ?? "",
@@ -91,117 +83,30 @@ export default function Page() {
     })
   }
 
+  const handleOnKeyDown = async (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      await handleNextStep();
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4 flex-grow p-4 items-center h-full">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='w-full max-w-2xl' onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            handleNextStep();
-          }
-        }}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='w-full max-w-2xl' onKeyDown={handleOnKeyDown}>
           {currentStep === 0 && (
-            <Card className="w-full max-w-2xl">
-              <CardHeader className='flex'>
-                <span className='text-2xl'>🎉</span>
-                <div className='flex flex-col gap-1.5'>
-                  <CardTitle>Dê um nome à sua lista de presentes e adicione uma descrição criativa!</CardTitle>
-                  <CardDescription>
-                    Sem pressão, você poderá mudar isso depois. Então, se quiser, mantenha tudo bem
-                    simples por agora.
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-6">
-                  <div className="grid gap-3">
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({field}) => (
-                        <FormItem className="w-full">
-                          <FormLabel htmlFor="title">Título</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="text"
-                              id="title"
-                              placeholder="Digite o título da lista"
-                            />
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid gap-3">
-                    <div className="flex items-center">
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({field}) => (
-                          <FormItem className="w-full">
-                            <FormLabel htmlFor="description">Descrição</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                id="description"
-                                placeholder="Digite uma descrição opcional para a sua lista"
-                              />
-                            </FormControl>
-                            <FormMessage/>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex gap-3 justify-end w-full">
-                <Button type="button" variant='ghost' onClick={handlePreviousStep} className='min-w-20'>
-                  Cancelar
-                </Button>
-                <Button type="button" disabled={createList.isPending} className="bg-[#b1563c] text-white hover:bg-[#a0452f] min-w-20" onClick={handleNextStep}>
-                  {createList.isPending ? <Loader2Icon className="animate-spin"/> : "Avançar"}
-                </Button>
-              </CardFooter>
-            </Card>
+            <ListDetailsStep
+              handleNextStepAction={handleNextStep}
+              handlePreviousStepAction={handlePreviousStep}
+              isPending={createList.isPending}
+            />
           )}
-          { currentStep === 1 && (
-            <Card className="w-full max-w-2xl h-[calc(100vh-80px-32px)] flex flex-col">
-              <CardHeader className='flex'>
-                <span className='text-2xl'>📌</span>
-                <div className='flex flex-col gap-1.5'>
-                  <CardTitle>Selecione o tipo de evento que melhor combina com sua lista de presentes!</CardTitle>
-                  <CardDescription>
-                    É só uma ajuda para organizar,sua escolha não restringe nada e pode ser alterada quando quiser.
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className='flex-1 overflow-y-auto'>
-                <div className="flex flex-col gap-6">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {categories.map(cat => (
-                      <CategoryButton
-                        key={cat.name}
-                        onClick={() => form.setValue("category", cat.name)}
-                        selected={selectedCategory === cat.name}
-                        category={cat.name}
-                        icon={cat.icon}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex gap-3 justify-end w-full flex-shrink-0">
-                <Button type="button" variant='ghost' onClick={handlePreviousStep} className='min-w-20'>
-                  Voltar
-                </Button>
-                <Button type="submit" disabled={createList.isPending} className="bg-[#b1563c] text-white hover:bg-[#a0452f] min-w-20">
-                  {createList.isPending ? <Loader2Icon className="animate-spin"/> : "Salvar"}
-                </Button>
-              </CardFooter>
-            </Card>
+          {currentStep === 1 && (
+            <CategoryStep
+              categories={categories}
+              handlePreviousStepAction={handlePreviousStep}
+              isPending={createList.isPending}
+            />
           )}
         </form>
       </Form>

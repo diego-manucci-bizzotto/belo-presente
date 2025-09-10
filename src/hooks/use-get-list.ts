@@ -5,5 +5,6 @@ export const useGetList = ({listId}: GetListRequest) => {
   return useQuery({
     queryKey: ["lists", listId],
     queryFn:() => getList({listId}),
+    enabled: !!listId,
   });
 };
