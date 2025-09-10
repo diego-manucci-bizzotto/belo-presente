@@ -5,14 +5,14 @@ import { cn } from "@/lib/utils";
 import { Banknote, Gift, Image, Link as LinkIcon, MessagesSquare, Palette, Settings, Users } from "lucide-react";
 
 const FEATURES = [
-  { value: "products", label: "Presentes", icon: Gift, category: "features" },
-  { value: "gallery", label: "Galeria", icon: Image, category: "features" },
-  { value: "notes", label: "Recados", icon: MessagesSquare, category: "features" },
-  { value: "share", label: "Compartilhar", icon: LinkIcon, category: "features" },
-  { value: "guests", label: "Convidados", icon: Users, category: "management" },
-  { value: "payments", label: "Pagamentos", icon: Banknote, category: "management" },
-  { value: "customize", label: "Personalizar", icon: Palette, category: "management" },
-  { value: "settings", label: "Configurações", icon: Settings, category: "management" },
+  { value: "products", label: "Presentes", icon: Gift },
+  { value: "gallery", label: "Galeria", icon: Image },
+  { value: "notes", label: "Recados", icon: MessagesSquare },
+  { value: "share", label: "Compartilhar", icon: LinkIcon },
+  { value: "guests", label: "Convidados", icon: Users },
+  { value: "payments", label: "Pagamentos", icon: Banknote },
+  { value: "customize", label: "Personalizar", icon: Palette },
+  { value: "settings", label: "Configurações", icon: Settings },
 ];
 
 interface ListSidebarNavProps {
@@ -28,7 +28,7 @@ export function ListSidebarNav({ listId, pathname }: ListSidebarNavProps) {
       <span className='text-muted-foreground'>Funcionalidades</span>
       <ul className='space-y-1'>
         {FEATURES
-          .filter(feature => feature.category === "features")
+          .slice(0, 4)
           .map(feature => (
             <li key={feature.value}>
               <Link
@@ -47,7 +47,7 @@ export function ListSidebarNav({ listId, pathname }: ListSidebarNavProps) {
       <span className='text-muted-foreground'>Gestão</span>
       <ul className='space-y-1'>
         {FEATURES
-          .filter(feature => feature.category === "management")
+          .slice(4, 8)
           .map(feature => (
             <li key={feature.value}>
               <Link
