@@ -20,23 +20,17 @@ const schema = z.object({
   purchaseType: z.enum(["payment", "redirect"], {
     errorMap: () => ({ message: "Selecione um tipo de compra válido" }),
   }),
-  images: (typeof window === 'undefined' ? z.any() : z.instanceof(FileList)).optional()
+  image: (typeof window === 'undefined' ? z.any() : z.instanceof(File)).optional()
 }).superRefine((data, ctx) => {
   if (data.purchaseType === "payment" && (data.price === undefined || data.price === null || isNaN(data.price) || data.price <= 0)) {
     ctx.addIssue({ path: ["price"], code: z.ZodIssueCode.custom, message: "O preço é obrigatório e deve ser positivo" });
   }
-  if (data.images) {
-    const files = Array.from(data.images); // No longer need to cast
-    if (files.length > 10) {
-      ctx.addIssue({ path: ["images"], code: z.ZodIssueCode.too_big, maximum: 10, type: "array", inclusive: true, message: "Máximo de 10 imagens" });
+  if (data.image) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(data.image.type)) {
+      ctx.addIssue({ path: ["image"], code: z.ZodIssueCode.custom, message: "Apenas imagens JPEG, PNG ou WEBP são permitidas" });
     }
-    for (const file of files as File[]) {
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        ctx.addIssue({ path: ["images"], code: z.ZodIssueCode.custom, message: "Apenas imagens JPEG, PNG ou WEBP são permitidas" });
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        ctx.addIssue({ path: ["images"], code: z.ZodIssueCode.too_big, maximum: 5 * 1024 * 1024, type: "string", inclusive: true, message: "Imagem muito grande (máx. 5MB)" });
-      }
+    if (data.image.size > 5 * 1024 * 1024) {
+      ctx.addIssue({ path: ["image"], code: z.ZodIssueCode.too_big, maximum: 5 * 1024 * 1024, type: "string", inclusive: true, message: "Imagem muito grande (máx. 5MB)" });
     }
   }
 });
@@ -51,7 +45,7 @@ export function AddProductForm({ handleSuccessAction, handleCancelAction }: AddP
     resolver: zodResolver(schema),
     defaultValues: {
       url: "", name: "", description: "", currency: "BRL",
-      price: null, quantity: 1, purchaseType: "payment", images: null,
+      price: null, quantity: 1, purchaseType: "payment", image: null,
     }
   });
   const { control, watch } = form;
@@ -66,7 +60,7 @@ export function AddProductForm({ handleSuccessAction, handleCancelAction }: AddP
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-6">
+        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
           <FormField
             control={control}
             name="url"
@@ -173,20 +167,20 @@ export function AddProductForm({ handleSuccessAction, handleCancelAction }: AddP
           />
           <FormField
             control={control}
-            name="images"
+            name="image"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Imagens <span className='text-muted-foreground'>(até 10)</span></FormLabel>
+                <FormLabel>Imagem</FormLabel>
                 <FormControl>
-                  <Input type="file" multiple onChange={(e) => field.onChange(e.target.files)} />
+                  <Input type="file" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={handleCancelAction}>Cancelar</Button>
+        <div className="flex flex gap-3 justify-end w-full mt-6">
+          <Button type="button" variant="ghost" onClick={handleCancelAction}>Cancelar</Button>
           <Button type="submit">Salvar produto</Button>
         </div>
       </form>

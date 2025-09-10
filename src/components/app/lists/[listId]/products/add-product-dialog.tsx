@@ -22,7 +22,7 @@ export function AddProductDialog() {
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>📦 Adicionar Produto</DialogTitle>
+          <DialogTitle>📦 Adicionar produto</DialogTitle>
           <DialogDescription>
             Preencha os detalhes do produto para adicioná-lo à lista.
           </DialogDescription>
