@@ -11,13 +11,9 @@ export default function RootLayout({ children, params }: Readonly<{ children: Re
 
   return (
     <div className="flex flex-col items-start gap-4 flex-grow p-4 h-full">
-      {listId && (
-        <ListHeader listId={Number(listId)} pathname={pathname} />
-      )}
+      <ListHeader listId={Number(listId)} pathname={pathname} />
       <div className='flex flex-col md:flex-row w-full gap-8 flex-grow min-h-0'>
-        {listId && (
-          <ListSidebarNav listId={Number(listId)} pathname={pathname}/>
-        )}
+        <ListSidebarNav listId={Number(listId)} pathname={pathname}/>
         {children}
       </div>
     </div>
