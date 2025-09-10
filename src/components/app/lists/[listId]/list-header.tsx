@@ -11,9 +11,20 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Banknote, Gift, Image, Link as LinkIcon, MessagesSquare, Palette, Settings, Users } from "lucide-react";
+import {
+  Banknote,
+  ExternalLink,
+  Gift,
+  Image,
+  Link as LinkIcon,
+  MessagesSquare,
+  Palette,
+  Settings,
+  Users
+} from "lucide-react";
 import { useGetList } from "@/hooks/use-get-list";
 import {cn} from "@/lib/utils";
+import {Button} from "@/components/ui/button";
 
 const FEATURES = [
   { value: "products", label: "Presentes", icon: Gift },
@@ -48,6 +59,10 @@ export function ListHeader({ listId, pathname }: ListHeaderProps) {
         ) : (
           <h1 className="text-2xl font-bold">{list?.title}</h1>
         )}
+        <Button variant="outline" onClick={() => router.push(`/share/${listId}`)}>
+          <ExternalLink />
+          Visitar lista
+        </Button>
         <Select value={lastPathSegment} onValueChange={handleNavigate}>
           <SelectTrigger className="w-full w-auto hover:cursor-pointer text-primary md:hidden">
             <SelectValue placeholder="Selecione" />
@@ -57,7 +72,7 @@ export function ListHeader({ listId, pathname }: ListHeaderProps) {
               <SelectLabel>Funcionalidades</SelectLabel>
               {FEATURES.slice(0, 4).map(feature => (
                 <SelectItem key={feature.value} value={feature.value} className={cn('hover:cursor-pointer text-muted-foreground hover:text-black', feature.value.includes(lastPathSegment || "") && "text-primary! hover:text-primary! hover:cursor-default bg-white! hover:bg-white!")}>
-                <feature.icon className={cn("inline-block mr-2 h-4 w-4 hover:text-black", feature.value.includes(lastPathSegment || "") && "text-primary")} />
+                <feature.icon className={cn("inline-block mr-2 size-4 hover:text-black", feature.value.includes(lastPathSegment || "") && "text-primary")} />
                   {feature.label}
                 </SelectItem>
               ))}
@@ -66,7 +81,7 @@ export function ListHeader({ listId, pathname }: ListHeaderProps) {
               <SelectLabel>Gestão</SelectLabel>
               {FEATURES.slice(4, 8).map(feature => (
                 <SelectItem key={feature.value} value={feature.value} className={cn('hover:cursor-pointer text-muted-foreground hover:text-black', feature.value.includes(lastPathSegment || "") && "text-primary")}>
-                  <feature.icon className={cn("inline-block mr-2 h-4 w-4 hover:text-black", feature.value.includes(lastPathSegment || "") && "text-primary")}/>
+                  <feature.icon className={cn("inline-block mr-2 size-4 hover:text-black", feature.value.includes(lastPathSegment || "") && "text-primary")}/>
                   {feature.label}
                 </SelectItem>
               ))}
