@@ -20,12 +20,16 @@ const schema = z.object({
   purchaseType: z.enum(["payment", "redirect"], {
     errorMap: () => ({ message: "Selecione um tipo de compra válido" }),
   }),
-  image: (typeof window === 'undefined' ? z.any() : z.instanceof(File)).optional()
+  image: z.any().optional()
 }).superRefine((data, ctx) => {
   if (data.purchaseType === "payment" && (data.price === undefined || data.price === null || isNaN(data.price) || data.price <= 0)) {
     ctx.addIssue({ path: ["price"], code: z.ZodIssueCode.custom, message: "O preço é obrigatório e deve ser positivo" });
   }
   if (data.image) {
+    if (!(data.image instanceof File)) {
+      ctx.addIssue({ path: ["image"], code: z.ZodIssueCode.custom, message: "Input not instance of File" });
+      return;
+    }
     if (!["image/jpeg", "image/png", "image/webp"].includes(data.image.type)) {
       ctx.addIssue({ path: ["image"], code: z.ZodIssueCode.custom, message: "Apenas imagens JPEG, PNG ou WEBP são permitidas" });
     }
