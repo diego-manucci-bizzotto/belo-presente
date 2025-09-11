@@ -129,42 +129,46 @@ export function AddProductForm({ handleSuccessAction, handleCancelAction }: AddP
               </FormItem>
             )}
           />
-          {purchaseType === 'payment' && (
-            <div className="grid grid-cols-2 gap-4">
-              <FormField control={control} name="price" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preço</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="number" placeholder="0,00" value={field.value ?? ""} onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={control} name="currency" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Moeda</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Selecione a moeda" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      <SelectItem value="BRL">Real (BRL)</SelectItem>
-                      <SelectItem value="USD">Dólar (USD)</SelectItem>
-                      <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </div>
-          )}
+          <div className="flex gap-4 items-start">
+            <FormField control={control} name="currency" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Moeda</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={purchaseType === "payment" ? "BRL" : field.value} disabled={purchaseType === "payment"}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Selecione a moeda" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="BRL">Real (BRL)</SelectItem>
+                    <SelectItem value="USD">Dólar (USD)</SelectItem>
+                    <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={control} name="price" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Preço</FormLabel>
+                <FormControl>
+                  <Input {...field} type="number" min="0" placeholder="0,00" value={field.value ?? ""} onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))} className='w-full'/>
+                </FormControl>
+                {purchaseType === "payment" ? (
+                  <FormDescription>O valor que você gostaria de receber por este produto</FormDescription>
+                ) : (
+                  <FormDescription>O valor aproximado do produto, não precisa ser exato</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
           <FormField
             control={control}
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantidade desejada</FormLabel>
+                <FormLabel>Quantidade</FormLabel>
                 <FormControl>
                   <Input {...field} type="number" min="1" value={field.value ?? 1} onChange={e => field.onChange(Number(e.target.value))} />
                 </FormControl>
+                <FormDescription>Quantos itens deste produto você gostaria de receber</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -174,7 +178,7 @@ export function AddProductForm({ handleSuccessAction, handleCancelAction }: AddP
             name="image"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Imagem</FormLabel>
+                <FormLabel>Imagem <span className='text-muted-foreground'>(opcional)</span></FormLabel>
                 <FormControl>
                   <Input type="file" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} />
                 </FormControl>
