@@ -9,8 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
 
 const schema = z.object({
+  autofill: z.boolean(),
   url: z.string().url("URL inválida").optional().or(z.literal('')),
   name: z.string().min(1, "O nome é obrigatório").max(100, "O nome deve ter no máximo 100 caracteres"),
   description: z.string().max(512, "A descrição deve ter no máximo 512 caracteres").optional(),
@@ -48,8 +50,15 @@ export function AddProductForm({ handleSuccessAction, handleCancelAction }: AddP
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      url: "", name: "", description: "", currency: "BRL",
-      price: null, quantity: 1, purchaseType: "payment", image: null,
+      autofill: true,
+      url: "",
+      name: "",
+      description: "",
+      currency: "BRL",
+      price: null,
+      quantity: 1,
+      purchaseType: "payment",
+      image: null,
     }
   });
   const { control, watch } = form;
@@ -67,6 +76,28 @@ export function AddProductForm({ handleSuccessAction, handleCancelAction }: AddP
         <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
           <FormField
             control={control}
+            name="autofill"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Buscar produto automaticamente
+                  </FormLabel>
+                  <FormDescription>
+                    Se marcado, tentaremos buscar os dados do produto automaticamente a partir da URL.
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
             name="url"
             render={({ field }) => (
               <FormItem>
@@ -74,9 +105,6 @@ export function AddProductForm({ handleSuccessAction, handleCancelAction }: AddP
                 <FormControl>
                   <Input {...field} type="url" placeholder="https://exemplo.com/produto" />
                 </FormControl>
-                <FormDescription>
-                  Se preenchido, tentaremos buscar os dados do produto automaticamente.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
