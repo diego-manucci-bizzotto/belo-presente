@@ -1,4 +1,4 @@
-import {NextRequest, NextResponse} from "next/server";
+﻿import {NextRequest, NextResponse} from "next/server";
 import {sendEmail} from "@/lib/nodemailer/nodemailer";
 import {randomBytes} from "crypto";
 import {Database} from "@/lib/pg/database";
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ok: true});
 
-  } catch (error){
-    return NextResponse.json({error: "Erro ao processar redefinição de senha"}, {status: 500});
+  } catch {
+    return NextResponse.json({error: "Erro ao processar redefinicao de senha"}, {status: 500});
   }
 }

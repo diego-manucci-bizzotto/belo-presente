@@ -1,7 +1,7 @@
 "use client";
 
 import {Skeleton} from "@/components/ui/skeleton";
-import ListCard from "@/components/app/lists/list-card";
+import ListCard from "@/components/app/(dashboard)/lists/list-card";
 import Image from "next/image";
 import {GetListsResponse} from "@/services/lists/get-lists";
 

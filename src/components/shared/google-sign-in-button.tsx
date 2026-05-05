@@ -1,6 +1,5 @@
-"use client";
+﻿"use client";
 
-import {Separator} from "@/components/ui/separator";
 import {Button} from "@/components/ui/button";
 import Image from "next/image";
 import {Loader2Icon} from "lucide-react";

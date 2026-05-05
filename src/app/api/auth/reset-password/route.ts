@@ -1,4 +1,4 @@
-import {NextResponse} from "next/server";
+﻿import {NextResponse} from "next/server";
 import {hash} from "bcrypt";
 import {Database} from "@/lib/pg/database";
 import {PasswordResetDAO} from "@/daos/password-reset-dao";
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       await PasswordResetDAO.deletePasswordResetToken(id, client);
     });
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    return NextResponse.json({error: "Erro ao processar redefinição de senha"}, { status: 500 });
+  } catch {
+    return NextResponse.json({error: "Erro ao processar redefinicao de senha"}, { status: 500 });
   }
 }

@@ -1,55 +1,39 @@
-
-/*
-
- id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    list_id BIGINT NOT NULL REFERENCES "list"(id) ON DELETE CASCADE,
-    name VARCHAR(100) NOT NULL,
-    description VARCHAR(512),
-    url TEXT,
-    image_url TEXT,
-    price DECIMAL(10, 2),
-    currency VARCHAR(10) DEFAULT 'BRL' NOT NULL,
-    quantity INT DEFAULT 1 NOT NULL,
-    purchase_type TEXT NOT NULL, -- 'payment' or 'redirect'
-    created_at TIMESTAMPTZ DEFAULT now(),
-    is_active BOOLEAN DEFAULT TRUE
-
- */
+export type ProductPurchaseType = "payment" | "redirect" | "free";
 
 export type CreateProductRequest = {
   list_id: string;
   product: {
     name: string;
     description?: string;
-    url? : string;
-    image_url? : string;
-    price: number;
+    url?: string;
+    image_url?: string;
+    price?: number;
     currency: string;
     quantity: number;
-    purchase_type: 'payment' | 'redirect';
-  }
-}
+    purchase_type: ProductPurchaseType;
+  };
+};
 
-type CreateProductResponse = {
+export type CreateProductResponse = {
   id: string;
   list_id: string;
   name: string;
-  description: string;
-  url?: string;
-  image_url?: string;
-  price?: number;
+  description: string | null;
+  url: string | null;
+  image_url: string | null;
+  price: number | null;
   currency: string;
   quantity: number;
-  purchase_type: 'payment' | 'redirect';
+  purchase_type: ProductPurchaseType;
   created_at: string;
   is_active: boolean;
-}
+};
 
-export const createProduct = async ({list_id, product} : CreateProductRequest) : Promise<CreateProductResponse> => {
+export const createProduct = async ({ list_id, product }: CreateProductRequest): Promise<CreateProductResponse> => {
   const response = await fetch(`/api/lists/${list_id}/products`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(product),
   });

@@ -1,5 +1,6 @@
-"use client";
+﻿"use client";
 
+import {Suspense} from "react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import Image from "next/image";
 import {cn} from "@/lib/utils";
@@ -23,11 +24,13 @@ export default function Page() {
           </div>
           <Card className="w-full max-w-sm">
             <CardHeader>
-              <CardTitle>Redefinir Senha 🔑</CardTitle>
+              <CardTitle>Redefinir Senha</CardTitle>
               <CardDescription>Digite sua nova senha para redefinir sua conta.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResetPasswordForm/>
+              <Suspense fallback={<p className="text-sm text-muted-foreground">Carregando formulario...</p>}>
+                <ResetPasswordForm/>
+              </Suspense>
             </CardContent>
           </Card>
         </div>

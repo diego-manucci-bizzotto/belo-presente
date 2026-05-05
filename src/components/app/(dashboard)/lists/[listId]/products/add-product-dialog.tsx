@@ -9,13 +9,17 @@ import {
 import { Plus } from "lucide-react";
 import { AddProductForm } from "./add-product-form";
 
-export function AddProductDialog() {
+interface AddProductDialogProps {
+  listId: string;
+}
+
+export function AddProductDialog({ listId }: AddProductDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#b1563c] text-white hover-bg-[#a0452f]">
+        <Button className="bg-[#b1563c] text-white hover:bg-[#a0452f]">
           <Plus />
           <span className='hidden md:block'>Adicionar produto</span>
         </Button>
@@ -28,6 +32,7 @@ export function AddProductDialog() {
           </DialogDescription>
         </DialogHeader>
         <AddProductForm
+          listId={listId}
           handleSuccessAction={() => setIsOpen(false)}
           handleCancelAction={() => setIsOpen(false)}
         />

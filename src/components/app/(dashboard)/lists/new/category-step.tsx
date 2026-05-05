@@ -2,7 +2,7 @@
 
 import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import CategoryButton from "@/components/app/lists/new/category-button";
+import CategoryButton from "@/components/app/(dashboard)/lists/new/category-button";
 import { Button } from "@/components/ui/button";
 import { Loader2Icon } from "lucide-react";
 

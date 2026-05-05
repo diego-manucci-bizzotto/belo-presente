@@ -1,4 +1,4 @@
-import {Pool, PoolClient, QueryResult} from "pg";
+﻿import {Pool, PoolClient, QueryResult} from "pg";
 
 class Database {
   private static instance: Database;
@@ -26,7 +26,7 @@ class Database {
     return Database.getInstance().pool;
   }
 
-  public async query(text: string, params?: any[]): Promise<QueryResult> {
+  public async query(text: string, params?: unknown[]): Promise<QueryResult> {
     return this.pool.query(text, params);
   }
 

@@ -1,50 +1,155 @@
-import {NextRequest} from "next/server";
-import {getServerSession} from "next-auth";
-import {authOptions} from "@/lib/next-auth/auth-options";
-import {nanoid} from "nanoid";
-import {ListDAO} from "@/daos/list-dao";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/next-auth/auth-options";
+import { ListDAO } from "@/daos/list-dao";
+import { ProductDAO } from "@/daos/product-dao";
+import { ProductPurchaseType } from "@/services/products/create-product";
 
-export type CreateProductRequest = {
-  list_id: string;
-  product: {
-    name: string;
-    description?: string;
-    url? : string;
-    image_url? : string;
-    price: number;
-    currency: string;
-    quantity: number;
-    purchase_type: 'payment' | 'redirect';
+type ProductRequestBody = {
+  name?: unknown;
+  description?: unknown;
+  url?: unknown;
+  image_url?: unknown;
+  price?: unknown;
+  currency?: unknown;
+  quantity?: unknown;
+  purchase_type?: unknown;
+};
+
+const isValidPurchaseType = (value: unknown): value is ProductPurchaseType => {
+  return value === "payment" || value === "redirect" || value === "free";
+};
+
+const normalizeOptionalString = (value: unknown): string | undefined => {
+  if (typeof value !== "string") {
+    return undefined;
   }
-}
 
-export async function POST(req: NextRequest) {
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
+};
+
+const isValidUrl = (value: string): boolean => {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const getUserIdFromSession = async () => {
   const session = await getServerSession(authOptions);
+  return session?.user?.id ? String(session.user.id) : null;
+};
 
-  if (!session?.user?.id) {
-    return new Response(JSON.stringify({error: "Não autorizado"}), { status: 401 });
+export async function GET(
+  _req: NextRequest,
+  context: { params: Promise<{ listId: string }> }
+) {
+  const userId = await getUserIdFromSession();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
   }
 
-  const {
-    name,
-    description,
-    url,
-    image_url,
-    price,
-    currency,
-    quantity,
-    purchase_type,
-  } = await req.json();
+  const { listId } = await context.params;
+  const list = await ListDAO.getListByIdAndUserId(listId, userId);
 
-  if (!name || !price || !currency || !quantity || !purchase_type) {
-    return new Response(JSON.stringify({error: "Dados incompletos"}), {status: 400});
+  if (!list) {
+    return NextResponse.json({ error: "Lista nao encontrada" }, { status: 404 });
   }
 
   try {
-    const createdProduct = await ListDAO.createList({title, description, category, userId: session.user.id.toString(), sharedId});
+    const products = await ProductDAO.getProductsByListId(listId);
+    return NextResponse.json(products, { status: 200 });
+  } catch {
+    return NextResponse.json({ error: "Erro ao buscar produtos" }, { status: 500 });
+  }
+}
 
-    return new Response(JSON.stringify(createdList), { status: 201 });
-  } catch (error) {
-    return new Response(JSON.stringify({error: "Erro ao criar lista"}), {status: 500});
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ listId: string }> }
+) {
+  const userId = await getUserIdFromSession();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+  }
+
+  const { listId } = await context.params;
+
+  const list = await ListDAO.getListByIdAndUserId(listId, userId);
+  if (!list) {
+    return NextResponse.json({ error: "Lista nao encontrada" }, { status: 404 });
+  }
+
+  const body: ProductRequestBody = await req.json();
+
+  const name = normalizeOptionalString(body.name);
+  const description = normalizeOptionalString(body.description);
+  const url = normalizeOptionalString(body.url);
+  const imageUrl = normalizeOptionalString(body.image_url);
+  const purchaseType = body.purchase_type;
+  const currencyRaw = normalizeOptionalString(body.currency);
+  const quantityRaw = Number(body.quantity);
+  const priceRaw =
+    body.price === undefined || body.price === null || body.price === ""
+      ? null
+      : Number(body.price);
+
+  if (!name) {
+    return NextResponse.json({ error: "Nome do produto e obrigatorio" }, { status: 400 });
+  }
+
+  if (!isValidPurchaseType(purchaseType)) {
+    return NextResponse.json({ error: "Tipo de compra invalido" }, { status: 400 });
+  }
+
+  if (!currencyRaw) {
+    return NextResponse.json({ error: "Moeda obrigatoria" }, { status: 400 });
+  }
+
+  if (!Number.isInteger(quantityRaw) || quantityRaw < 1) {
+    return NextResponse.json({ error: "Quantidade invalida" }, { status: 400 });
+  }
+
+  if (priceRaw !== null && (Number.isNaN(priceRaw) || priceRaw < 0)) {
+    return NextResponse.json({ error: "Preco invalido" }, { status: 400 });
+  }
+
+  if (purchaseType === "payment" && (priceRaw === null || priceRaw <= 0)) {
+    return NextResponse.json({ error: "Preco obrigatorio para presentes em dinheiro" }, { status: 400 });
+  }
+
+  if (purchaseType === "redirect" && !url) {
+    return NextResponse.json({ error: "URL obrigatoria para redirecionamento" }, { status: 400 });
+  }
+
+  if (url && !isValidUrl(url)) {
+    return NextResponse.json({ error: "URL do produto invalida" }, { status: 400 });
+  }
+
+  if (imageUrl && !isValidUrl(imageUrl)) {
+    return NextResponse.json({ error: "URL da imagem invalida" }, { status: 400 });
+  }
+
+  try {
+    const createdProduct = await ProductDAO.createProduct({
+      listId,
+      name,
+      description,
+      url,
+      imageUrl,
+      price: priceRaw === null ? undefined : priceRaw,
+      currency: currencyRaw.toUpperCase(),
+      quantity: quantityRaw,
+      purchaseType,
+    });
+
+    return NextResponse.json(createdProduct, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Erro ao criar produto" }, { status: 500 });
   }
 }

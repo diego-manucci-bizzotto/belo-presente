@@ -2,8 +2,8 @@
 
 import React, {use} from "react";
 import {usePathname} from "next/navigation";
-import {ListHeader} from "@/components/app/lists/[listId]/list-header";
-import {ListSidebarNav} from "@/components/app/lists/[listId]/list-sidebar-nav";
+import {ListHeader} from "@/components/app/(dashboard)/lists/[listId]/list-header";
+import {ListSidebarNav} from "@/components/app/(dashboard)/lists/[listId]/list-sidebar-nav";
 
 export default function RootLayout({ children, params }: Readonly<{ children: React.ReactNode, params: Promise<{ listId: string }>}>) {
   const pathname = usePathname();

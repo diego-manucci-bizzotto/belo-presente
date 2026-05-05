@@ -2,9 +2,9 @@
 
 import {useMemo, useState} from "react";
 import {useGetLists} from "@/hooks/use-get-lists";
-import {ListsToolbar} from "@/components/app/lists/lists-toolbar";
-import {ListsTitle} from "@/components/app/lists/lists-title";
-import {ListsDisplay} from "@/components/app/lists/lists-display";
+import {ListsToolbar} from "@/components/app/(dashboard)/lists/lists-toolbar";
+import {ListsTitle} from "@/components/app/(dashboard)/lists/lists-title";
+import {ListsDisplay} from "@/components/app/(dashboard)/lists/lists-display";
 
 export default function Page() {
 

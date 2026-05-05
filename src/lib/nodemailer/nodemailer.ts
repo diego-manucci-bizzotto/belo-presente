@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+﻿import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -20,7 +20,7 @@ export async function sendEmail({to, subject, text, html,}: { to: string; subjec
       html,
     });
   }
-  catch (error) {
+  catch {
     throw new Error("Erro ao enviar email");
   }
 }

@@ -1,18 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import {AddProductDialog} from "@/components/app/lists/[listId]/products/add-product-dialog";
-import {ProductsDisplay} from "@/components/app/lists/[listId]/products/products-display";
+import { AddProductDialog } from "@/components/app/(dashboard)/lists/[listId]/products/add-product-dialog";
+import { ProductsDisplay } from "@/components/app/(dashboard)/lists/[listId]/products/products-display";
+import { useGetProducts } from "@/hooks/use-get-products";
 
 export default function Page() {
-  // TODO: Fetch products for the list and handle loading/error states.
-  const products = [1, 2, 3, 4, 5, 6, 7, 8]; // Using mock data for now
-
   const [filter, setFilter] = useState("");
+  const params = useParams<{ listId: string }>();
+  const listId = params.listId;
+  const products = useGetProducts({ listId });
 
-  // TODO: Implement filtering logic based on actual product data.
-  const filteredProducts = products;
+  const filteredProducts = useMemo(() => {
+    if (!products.data) {
+      return [];
+    }
+
+    const normalizedFilter = filter.trim().toLowerCase();
+    if (!normalizedFilter) {
+      return products.data;
+    }
+
+    return products.data.filter(product =>
+      product.name.toLowerCase().includes(normalizedFilter)
+    );
+  }, [filter, products.data]);
 
   return (
     <div className='w-full flex flex-col gap-4 h-full'>
@@ -23,9 +37,12 @@ export default function Page() {
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
-        <AddProductDialog />
+        <AddProductDialog listId={listId} />
       </div>
-      <ProductsDisplay products={filteredProducts} />
+      <ProductsDisplay
+        products={filteredProducts}
+        isLoading={products.isLoading || products.isPending}
+      />
     </div>
   );
 }

@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
-import { ListDetailsStep } from "@/components/app/lists/new/list-details-step";
-import { CategoryStep } from "@/components/app/lists/new/category-step";
+import { ListDetailsStep } from "@/components/app/(dashboard)/lists/new/list-details-step";
+import { CategoryStep } from "@/components/app/(dashboard)/lists/new/category-step";
 import { useCreateList } from "@/hooks/use-create-list";
 
 const categories = [
