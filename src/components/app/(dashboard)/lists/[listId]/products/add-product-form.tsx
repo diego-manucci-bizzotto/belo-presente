@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCreateProduct } from "@/hooks/use-create-product";
+import { useUpdateProduct } from "@/hooks/use-update-product";
+import { CreateProductResponse } from "@/services/products/create-product";
 
 const schema = z.object({
   autofill: z.boolean(),
@@ -23,11 +25,11 @@ const schema = z.object({
   currency: z.string().min(1, "A moeda e obrigatoria").max(10, "A moeda deve ter no maximo 10 caracteres"),
   price: z.number().positive("O preco deve ser um numero positivo").max(999999.99, "O preco e muito alto").optional().nullable(),
   quantity: z.number().int().min(1, "A quantidade deve ser pelo menos 1").max(100, "A quantidade nao pode ser maior que 100"),
-  purchaseType: z.enum(["payment", "redirect", "free"], {
+  purchaseType: z.enum(["qrcode", "redirect"], {
     errorMap: () => ({ message: "Selecione um tipo de compra valido" }),
   }),
 }).superRefine((data, ctx) => {
-  if (data.purchaseType === "payment" && (data.price === undefined || data.price === null || Number.isNaN(data.price) || data.price <= 0)) {
+  if (data.purchaseType === "qrcode" && (data.price === undefined || data.price === null || Number.isNaN(data.price) || data.price <= 0)) {
     ctx.addIssue({
       path: ["price"],
       code: z.ZodIssueCode.custom,
@@ -42,61 +44,97 @@ const schema = z.object({
       message: "A URL e obrigatoria para redirecionamento",
     });
   }
+
+  if (data.purchaseType === "qrcode" && !data.imageUrl) {
+    ctx.addIssue({
+      path: ["imageUrl"],
+      code: z.ZodIssueCode.custom,
+      message: "A URL da imagem do QR code e obrigatoria",
+    });
+  }
 });
+
+type FormMode = "create" | "edit";
 
 interface AddProductFormProps {
   listId: string;
+  mode?: FormMode;
+  product?: CreateProductResponse;
   handleSuccessAction: () => void;
   handleCancelAction: () => void;
 }
 
 export function AddProductForm({
   listId,
+  mode = "create",
+  product,
   handleSuccessAction,
   handleCancelAction,
 }: AddProductFormProps) {
+  const isEditMode = mode === "edit" && !!product;
   const createProduct = useCreateProduct({ listId });
+  const updateProduct = useUpdateProduct({ listId });
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
       autofill: true,
-      url: "",
-      imageUrl: "",
-      name: "",
-      description: "",
+      url: product?.url ?? "",
+      imageUrl: product?.image_url ?? "",
+      name: product?.name ?? "",
+      description: product?.description ?? "",
       currency: "BRL",
-      price: null,
-      quantity: 1,
-      purchaseType: "payment",
+      price: product?.price ?? null,
+      quantity: product?.quantity ?? 1,
+      purchaseType: product?.purchase_type === "redirect" ? "redirect" : "qrcode",
     },
   });
 
   const { control, watch } = form;
   const purchaseType = watch("purchaseType");
+  const isPending = createProduct.isPending || updateProduct.isPending;
+  const submitLabel = isEditMode ? "Salvar alteracoes" : "Salvar produto";
 
   useEffect(() => {
-    if (purchaseType === "payment") {
-      form.setValue("currency", "BRL", { shouldValidate: true });
-    }
+    form.setValue("currency", "BRL", { shouldValidate: true });
   }, [form, purchaseType]);
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
-    await createProduct.mutateAsync({
-      list_id: listId,
-      product: {
-        name: data.name.trim(),
-        description: data.description?.trim() || undefined,
-        url: data.url?.trim() || undefined,
-        image_url: data.imageUrl?.trim() || undefined,
-        price: data.price ?? undefined,
-        currency: data.currency.trim().toUpperCase(),
-        quantity: data.quantity,
-        purchase_type: data.purchaseType,
-      },
-    });
+    const payload = {
+      name: data.name.trim(),
+      description: data.description?.trim() || undefined,
+      url: data.url?.trim() || undefined,
+      image_url: data.imageUrl?.trim() || undefined,
+      price: data.price ?? undefined,
+      currency: data.currency.trim().toUpperCase(),
+      quantity: data.quantity,
+      purchase_type: data.purchaseType,
+    } as const;
 
-    form.reset();
+    if (isEditMode && product) {
+      await updateProduct.mutateAsync({
+        list_id: listId,
+        product_id: product.id,
+        product: payload,
+      });
+    } else {
+      await createProduct.mutateAsync({
+        list_id: listId,
+        product: payload,
+      });
+      form.reset({
+        autofill: true,
+        url: "",
+        imageUrl: "",
+        name: "",
+        description: "",
+        currency: "BRL",
+        price: null,
+        quantity: 1,
+        purchaseType: "qrcode",
+      });
+    }
+
     handleSuccessAction();
   };
 
@@ -169,16 +207,12 @@ export function AddProductForm({
                 <FormControl>
                   <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                     <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl><RadioGroupItem value="payment" /></FormControl>
-                      <FormLabel className="font-normal">Receber o valor em dinheiro via PIX</FormLabel>
+                      <FormControl><RadioGroupItem value="qrcode" /></FormControl>
+                      <FormLabel className="font-normal">Pagamento direto por QR code</FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl><RadioGroupItem value="redirect" /></FormControl>
                       <FormLabel className="font-normal">Redirecionar para um site externo para a compra</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl><RadioGroupItem value="free" /></FormControl>
-                      <FormLabel className="font-normal">Presente livre (sem pagamento e sem redirecionamento)</FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -193,12 +227,7 @@ export function AddProductForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Moeda</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    value={purchaseType === "payment" ? "BRL" : field.value}
-                    disabled={purchaseType === "payment"}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value="BRL" disabled>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione a moeda" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="BRL">Real (BRL)</SelectItem>
@@ -228,12 +257,10 @@ export function AddProductForm({
                       className="w-full"
                     />
                   </FormControl>
-                  {purchaseType === "payment" ? (
-                    <FormDescription>O valor que voce gostaria de receber por este produto</FormDescription>
-                  ) : purchaseType === "redirect" ? (
+                  {purchaseType === "redirect" ? (
                     <FormDescription>Informe o valor aproximado do produto (opcional)</FormDescription>
                   ) : (
-                    <FormDescription>Opcional para presentes livres</FormDescription>
+                    <FormDescription>Valor cobrado diretamente no pagamento por QR code</FormDescription>
                   )}
                   <FormMessage />
                 </FormItem>
@@ -259,9 +286,16 @@ export function AddProductForm({
             name="imageUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>URL da imagem <span className="text-muted-foreground">(opcional)</span></FormLabel>
+                <FormLabel>
+                  URL da imagem do QR code{" "}
+                  {purchaseType === "qrcode" ? null : <span className="text-muted-foreground">(opcional)</span>}
+                </FormLabel>
                 <FormControl>
-                  <Input {...field} type="url" placeholder="https://exemplo.com/imagem.jpg" />
+                  <Input
+                    {...field}
+                    type="url"
+                    placeholder={purchaseType === "qrcode" ? "https://exemplo.com/qrcode.png" : "https://exemplo.com/imagem.jpg"}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -269,11 +303,12 @@ export function AddProductForm({
           />
         </div>
         <div className="flex flex gap-3 justify-end w-full mt-6">
-          <Button type="button" variant="ghost" onClick={handleCancelAction} disabled={createProduct.isPending}>
+          <Button type="button" variant="ghost" onClick={handleCancelAction} disabled={isPending}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={createProduct.isPending}>
-            {createProduct.isPending ? <Loader2Icon className="animate-spin" /> : "Salvar produto"}
+          <Button type="submit" disabled={isPending}>
+            {isPending && <Loader2Icon className="animate-spin" />}
+            {submitLabel}
           </Button>
         </div>
       </form>

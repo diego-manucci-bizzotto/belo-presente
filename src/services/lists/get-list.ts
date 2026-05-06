@@ -3,7 +3,7 @@ export type GetListRequest = {
   listId: number;
 }
 
-type GetListResponse = {
+export type GetListResponse = {
   id: string;
   title: string;
   description: string;

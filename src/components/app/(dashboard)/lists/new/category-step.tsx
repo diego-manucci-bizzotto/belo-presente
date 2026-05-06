@@ -47,7 +47,8 @@ export function CategoryStep({ categories, handlePreviousStepAction, isPending }
           Voltar
         </Button>
         <Button type="submit" disabled={isPending} className="bg-[#b1563c] text-white hover:bg-[#a0452f] min-w-20">
-          {isPending ? <Loader2Icon className="animate-spin" /> : "Salvar"}
+          {isPending && <Loader2Icon className="animate-spin" />}
+          Salvar
         </Button>
       </CardFooter>
     </Card>

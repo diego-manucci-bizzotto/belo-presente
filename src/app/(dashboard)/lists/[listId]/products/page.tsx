@@ -40,6 +40,7 @@ export default function Page() {
         <AddProductDialog listId={listId} />
       </div>
       <ProductsDisplay
+        listId={listId}
         products={filteredProducts}
         isLoading={products.isLoading || products.isPending}
       />

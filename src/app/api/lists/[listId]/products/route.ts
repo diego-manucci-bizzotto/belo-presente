@@ -17,7 +17,7 @@ type ProductRequestBody = {
 };
 
 const isValidPurchaseType = (value: unknown): value is ProductPurchaseType => {
-  return value === "payment" || value === "redirect" || value === "free";
+  return value === "qrcode" || value === "redirect";
 };
 
 const normalizeOptionalString = (value: unknown): string | undefined => {
@@ -119,12 +119,16 @@ export async function POST(
     return NextResponse.json({ error: "Preco invalido" }, { status: 400 });
   }
 
-  if (purchaseType === "payment" && (priceRaw === null || priceRaw <= 0)) {
-    return NextResponse.json({ error: "Preco obrigatorio para presentes em dinheiro" }, { status: 400 });
+  if (purchaseType === "qrcode" && (priceRaw === null || priceRaw <= 0)) {
+    return NextResponse.json({ error: "Preco obrigatorio para pagamento por QR code" }, { status: 400 });
   }
 
   if (purchaseType === "redirect" && !url) {
     return NextResponse.json({ error: "URL obrigatoria para redirecionamento" }, { status: 400 });
+  }
+
+  if (purchaseType === "qrcode" && !imageUrl) {
+    return NextResponse.json({ error: "URL da imagem do QR code obrigatoria" }, { status: 400 });
   }
 
   if (url && !isValidUrl(url)) {

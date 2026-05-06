@@ -71,8 +71,62 @@ CREATE TABLE "product" (
     price DECIMAL(10, 2),
     currency VARCHAR(10) DEFAULT 'BRL' NOT NULL,
     quantity INT DEFAULT 1 NOT NULL,
-    purchase_type TEXT NOT NULL, -- 'payment' or 'redirect'
+    purchase_type TEXT NOT NULL, -- 'qrcode' or 'redirect'
     created_at TIMESTAMPTZ DEFAULT now(),
     is_active BOOLEAN DEFAULT TRUE
 );
 
+CREATE TABLE gift_intent (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    list_id BIGINT NOT NULL REFERENCES "list"(id) ON DELETE CASCADE,
+    product_id BIGINT NOT NULL REFERENCES "product"(id) ON DELETE CASCADE,
+    guest_name VARCHAR(120) NOT NULL,
+    guest_phone VARCHAR(30) NOT NULL,
+    guest_message VARCHAR(512),
+    purchase_type TEXT NOT NULL, -- 'qrcode' or 'redirect'
+    amount DECIMAL(10, 2),
+    currency VARCHAR(10) DEFAULT 'BRL' NOT NULL,
+    status TEXT DEFAULT 'pending' NOT NULL, -- 'pending' or 'completed'
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE guest (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    list_id BIGINT NOT NULL REFERENCES "list"(id) ON DELETE CASCADE,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(30),
+    note VARCHAR(512),
+    status TEXT DEFAULT 'pending' NOT NULL, -- 'pending', 'confirmed' or 'declined'
+    created_at TIMESTAMPTZ DEFAULT now(),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE list_feature_flags (
+    list_id BIGINT PRIMARY KEY REFERENCES "list"(id) ON DELETE CASCADE,
+    attendance_confirmation_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+    notes_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+    contributions_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+    share_enabled BOOLEAN DEFAULT TRUE NOT NULL,
+    selection_notifications_enabled BOOLEAN DEFAULT TRUE NOT NULL
+);
+
+CREATE TABLE list_note (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    list_id BIGINT NOT NULL REFERENCES "list"(id) ON DELETE CASCADE,
+    author_name VARCHAR(120) NOT NULL,
+    author_contact VARCHAR(255),
+    message VARCHAR(512) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE list_selection_event (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    list_id BIGINT NOT NULL REFERENCES "list"(id) ON DELETE CASCADE,
+    product_id BIGINT NOT NULL REFERENCES "product"(id) ON DELETE CASCADE,
+    product_name VARCHAR(100) NOT NULL,
+    guest_name VARCHAR(120) NOT NULL,
+    event_type TEXT NOT NULL, -- 'selected' or 'deselected'
+    created_at TIMESTAMPTZ DEFAULT now()
+);

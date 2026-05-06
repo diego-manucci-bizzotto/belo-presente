@@ -13,6 +13,7 @@ interface ListProps {
     title: string;
     category: string;
     active: boolean;
+    share_id: string;
   };
 }
 
@@ -43,7 +44,7 @@ export default function ListCard({list} : ListProps) {
                   <Pen size={20}/>
                   Editar lista
                 </Link>
-                <Link href={`/share/${list.id}/`}
+                <Link href={`/share/${list.share_id}/`}
                       className="flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors">
                   <ExternalLink size={20}/>
                   Visitar lista

@@ -24,7 +24,7 @@ export function AddProductDialog({ listId }: AddProductDialogProps) {
           <span className='hidden md:block'>Adicionar produto</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="w-[1900px]">
         <DialogHeader>
           <DialogTitle>📦 Adicionar produto</DialogTitle>
           <DialogDescription>

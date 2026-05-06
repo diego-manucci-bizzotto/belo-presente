@@ -1,4 +1,4 @@
-export type ProductPurchaseType = "payment" | "redirect" | "free";
+export type ProductPurchaseType = "qrcode" | "redirect";
 
 export type CreateProductRequest = {
   list_id: string;

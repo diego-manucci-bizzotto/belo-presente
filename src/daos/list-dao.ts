@@ -52,4 +52,54 @@ export class ListDAO {
     );
     return rows[0];
   }
+
+  public static async getActiveListByShareId(
+    shareId: string,
+    client?: PoolClient
+  ) {
+    const db = Database.getInstance();
+    const runner = client || db;
+    const { rows } = await runner.query(
+      `SELECT id, title, description, category, user_id, share_id, active
+       FROM list
+       WHERE share_id = $1 AND active = TRUE`,
+      [shareId]
+    );
+
+    return rows[0] ?? null;
+  }
+
+  public static async updateListByIdAndUserId(
+    {
+      listId,
+      userId,
+      title,
+      description,
+      category,
+      active,
+    }: {
+      listId: string;
+      userId: string;
+      title: string;
+      description?: string;
+      category: string;
+      active: boolean;
+    },
+    client?: PoolClient
+  ) {
+    const db = Database.getInstance();
+    const runner = client || db;
+    const { rows } = await runner.query(
+      `UPDATE list
+       SET title = $3,
+           description = $4,
+           category = $5,
+           active = $6
+       WHERE id = $1 AND user_id = $2
+       RETURNING id, title, description, category, user_id, share_id, active`,
+      [listId, userId, title, description ?? "", category, active]
+    );
+
+    return rows[0] ?? null;
+  }
 }
