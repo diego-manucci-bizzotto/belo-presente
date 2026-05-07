@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { AddProductDialog } from "@/components/app/(dashboard)/lists/[listId]/products/add-product-dialog";
 import { ProductsDisplay } from "@/components/app/(dashboard)/lists/[listId]/products/products-display";
+import { FilterActionsToolbar } from "@/components/app/(dashboard)/filter-actions-toolbar";
 import { useGetProducts } from "@/hooks/use-get-products";
 
 export default function Page() {
@@ -29,16 +29,13 @@ export default function Page() {
   }, [filter, products.data]);
 
   return (
-    <div className='w-full flex flex-col gap-4 h-full'>
-      <div className='flex justify-between items-center gap-4'>
-        <Input
-          placeholder='Filtrar produtos...'
-          className='w-full md:max-w-sm'
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        />
-        <AddProductDialog listId={listId} />
-      </div>
+    <div className="w-full flex flex-col gap-4">
+      <FilterActionsToolbar
+        filter={filter}
+        placeholder="Filtrar produtos..."
+        onFilterChangeAction={setFilter}
+        action={<AddProductDialog listId={listId} />}
+      />
       <ProductsDisplay
         listId={listId}
         products={filteredProducts}

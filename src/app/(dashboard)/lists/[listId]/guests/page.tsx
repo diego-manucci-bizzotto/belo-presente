@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddGuestDialog } from "@/components/app/(dashboard)/lists/[listId]/guests/add-guest-dialog";
 import { GuestsDisplay } from "@/components/app/(dashboard)/lists/[listId]/guests/guests-display";
+import { FilterActionsToolbar } from "@/components/app/(dashboard)/filter-actions-toolbar";
 import { useGetGuests } from "@/hooks/use-get-guests";
 import { useGetListFeatures } from "@/hooks/use-get-list-features";
 
@@ -67,7 +67,7 @@ export default function Page() {
 
   if (listFeatures.data && !listFeatures.data.attendance_confirmation_enabled) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full py-10 flex items-center justify-center">
         <p className="text-muted-foreground">
           A confirmacao de presenca esta desativada para esta lista. Ative em Funcionalidades.
         </p>
@@ -76,7 +76,7 @@ export default function Page() {
   }
 
   return (
-    <div className="w-full flex flex-col gap-4 h-full">
+    <div className="w-full flex flex-col gap-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card>
           <CardHeader className="pb-2">
@@ -112,15 +112,12 @@ export default function Page() {
         </Card>
       </div>
 
-      <div className="flex justify-between items-center gap-4">
-        <Input
-          placeholder="Filtrar convidados..."
-          className="w-full md:max-w-sm"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        />
-        <AddGuestDialog listId={listId} />
-      </div>
+      <FilterActionsToolbar
+        filter={filter}
+        placeholder="Filtrar convidados..."
+        onFilterChangeAction={setFilter}
+        action={<AddGuestDialog listId={listId} />}
+      />
 
       <GuestsDisplay
         listId={listId}

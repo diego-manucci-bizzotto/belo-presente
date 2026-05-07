@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetListFeatures } from "@/hooks/use-get-list-features";
 import { useGetSelectionEvents } from "@/hooks/use-get-selection-events";
+import { FilterActionsToolbar } from "@/components/app/(dashboard)/filter-actions-toolbar";
 
 const formatDateTime = (value: string) => {
   try {
@@ -28,19 +28,22 @@ export default function Page() {
   const params = useParams<{ listId: string }>();
   const listId = params.listId;
   const listFeatures = useGetListFeatures({ listId });
-  const selectionEvents = useGetSelectionEvents({ listId });
+  const selectionEvents = useGetSelectionEvents({
+    listId,
+    enabled: listFeatures.data?.selection_notifications_enabled === true,
+  });
 
   const filteredEvents = useMemo(() => {
-    if (!selectionEvents.data) {
+    if (!selectionEvents.data?.events) {
       return [];
     }
 
     const normalizedFilter = filter.trim().toLowerCase();
     if (!normalizedFilter) {
-      return selectionEvents.data;
+      return selectionEvents.data.events;
     }
 
-    return selectionEvents.data.filter((event) => {
+    return selectionEvents.data.events.filter((event) => {
       const byGuest = event.guest_name.toLowerCase().includes(normalizedFilter);
       const byProduct = event.product_name.toLowerCase().includes(normalizedFilter);
       const byType = event.event_type.toLowerCase().includes(normalizedFilter);
@@ -50,7 +53,7 @@ export default function Page() {
   }, [filter, selectionEvents.data]);
 
   const counters = useMemo(() => {
-    const source = selectionEvents.data ?? [];
+    const source = selectionEvents.data?.events ?? [];
     return {
       total: source.length,
       selected: source.filter((event) => event.event_type === "selected").length,
@@ -73,9 +76,19 @@ export default function Page() {
     );
   }
 
+  if (listFeatures.data && !listFeatures.data.selection_notifications_enabled) {
+    return (
+      <div className="w-full py-10 flex items-center justify-center">
+        <p className="text-muted-foreground">
+          Notificacoes de selecao estao desabilitadas para esta lista. Ative em Funcionalidades.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full flex flex-col gap-4 h-full">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div className="w-full flex flex-col gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Status</CardTitle>
@@ -83,6 +96,16 @@ export default function Page() {
           <CardContent>
             <Badge variant={listFeatures.data?.selection_notifications_enabled ? "default" : "secondary"}>
               {listFeatures.data?.selection_notifications_enabled ? "Ativo" : "Desativado"}
+            </Badge>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Canal de email</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Badge variant={selectionEvents.data?.channels.email_configured ? "default" : "secondary"}>
+              {selectionEvents.data?.channels.email_configured ? "Configurado" : "Nao configurado"}
             </Badge>
           </CardContent>
         </Card>
@@ -112,16 +135,15 @@ export default function Page() {
         </Card>
       </div>
 
-      <Input
+      <FilterActionsToolbar
+        filter={filter}
         placeholder="Filtrar historico por convidado, produto ou tipo..."
-        className="w-full md:max-w-sm"
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        onFilterChangeAction={setFilter}
       />
 
-      <div className="flex flex-col gap-3 overflow-y-auto h-full">
+      <div className="flex flex-col gap-3">
         {filteredEvents.length === 0 ? (
-          <div className="h-full flex items-center justify-center">
+          <div className="py-10 flex items-center justify-center">
             <p className="text-muted-foreground">Nenhum evento de selecao registrado.</p>
           </div>
         ) : (

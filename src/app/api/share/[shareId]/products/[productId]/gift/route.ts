@@ -5,6 +5,7 @@ import { GiftIntentDAO } from "@/daos/gift-intent-dao";
 import { ListDAO } from "@/daos/list-dao";
 import { ListSelectionEventDAO } from "@/daos/list-selection-event-dao";
 import { resolveListFeatureFlags } from "@/lib/list-feature-flags-resolver";
+import { sendSelectionNotificationEmail } from "@/services/notifications/send-selection-notification-email";
 
 type GiftIntentRequestBody = {
   guest_name?: unknown;
@@ -85,8 +86,8 @@ export async function POST(
         throw new GiftIntentValidationError("Este presente nao esta mais disponivel");
       }
 
-      if (product.purchase_type === "redirect" && !product.url) {
-        throw new GiftIntentValidationError("Produto de redirecionamento sem URL");
+      if (product.purchase_type === "redirect" && !product.affiliate_url && !product.url) {
+        throw new GiftIntentValidationError("Produto de redirecionamento sem link de compra");
       }
 
       if (product.purchase_type === "qrcode" && !product.image_url) {
@@ -126,12 +127,23 @@ export async function POST(
       };
     });
 
+    if (flags.selection_notifications_enabled) {
+      await sendSelectionNotificationEmail({
+        userId: String(list.user_id),
+        listId: String(list.id),
+        listTitle: String(list.title),
+        productName: result.product.name,
+        guestName: result.giftIntent.guest_name,
+        eventType: "selected",
+      });
+    }
+
     if (result.product.purchase_type === "redirect") {
       return NextResponse.json(
         {
           ok: true,
           purchase_type: "redirect",
-          redirect_url: result.product.url,
+          redirect_url: result.product.affiliate_url || result.product.url,
           gift_intent_id: String(result.giftIntent.id),
         },
         { status: 201 }

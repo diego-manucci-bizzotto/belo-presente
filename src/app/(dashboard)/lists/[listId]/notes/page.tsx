@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetListFeatures } from "@/hooks/use-get-list-features";
 import { useGetNotes } from "@/hooks/use-get-notes";
 import { NotesDisplay } from "@/components/app/(dashboard)/lists/[listId]/notes/notes-display";
+import { FilterActionsToolbar } from "@/components/app/(dashboard)/filter-actions-toolbar";
 
 export default function Page() {
   const [filter, setFilter] = useState("");
@@ -50,7 +50,7 @@ export default function Page() {
 
   if (listFeatures.data && !listFeatures.data.notes_enabled) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full py-10 flex items-center justify-center">
         <p className="text-muted-foreground">
           Recados estao desabilitados para esta lista. Ative em Funcionalidades.
         </p>
@@ -61,7 +61,7 @@ export default function Page() {
   const total = notes.data?.length ?? 0;
 
   return (
-    <div className="w-full flex flex-col gap-4 h-full">
+    <div className="w-full flex flex-col gap-4">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm text-muted-foreground">Total de recados</CardTitle>
@@ -71,11 +71,10 @@ export default function Page() {
         </CardContent>
       </Card>
 
-      <Input
+      <FilterActionsToolbar
+        filter={filter}
         placeholder="Filtrar recados..."
-        className="w-full md:max-w-sm"
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        onFilterChangeAction={setFilter}
       />
 
       <NotesDisplay

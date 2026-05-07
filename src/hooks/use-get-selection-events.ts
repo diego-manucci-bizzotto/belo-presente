@@ -3,12 +3,13 @@ import { getSelectionEvents } from "@/services/notifications/get-selection-event
 
 interface UseGetSelectionEventsProps {
   listId: string;
+  enabled?: boolean;
 }
 
-export const useGetSelectionEvents = ({ listId }: UseGetSelectionEventsProps) => {
+export const useGetSelectionEvents = ({ listId, enabled = true }: UseGetSelectionEventsProps) => {
   return useQuery({
     queryKey: ["lists", listId, "selection-events"],
     queryFn: () => getSelectionEvents({ listId }),
-    enabled: !!listId,
+    enabled: !!listId && enabled,
   });
 };

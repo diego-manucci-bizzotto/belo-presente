@@ -6,6 +6,7 @@ export type CreateProductRequest = {
     name: string;
     description?: string;
     url?: string;
+    affiliate_url?: string;
     image_url?: string;
     price?: number;
     currency: string;
@@ -20,6 +21,7 @@ export type CreateProductResponse = {
   name: string;
   description: string | null;
   url: string | null;
+  affiliate_url: string | null;
   image_url: string | null;
   price: number | null;
   currency: string;
@@ -27,6 +29,8 @@ export type CreateProductResponse = {
   purchase_type: ProductPurchaseType;
   created_at: string;
   is_active: boolean;
+  gifted_count?: number;
+  remaining_quantity?: number;
 };
 
 export const createProduct = async ({ list_id, product }: CreateProductRequest): Promise<CreateProductResponse> => {

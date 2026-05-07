@@ -18,8 +18,8 @@ interface ProductListProps {
 }
 
 const MODE_LABELS = {
-  qrcode: "QR code",
-  redirect: "Loja externa",
+  qrcode: "QR code PIX",
+  redirect: "Link loja",
   free: "Legado",
 } as const;
 
@@ -46,6 +46,24 @@ const getModeLabel = (mode: string) => {
   return mode;
 };
 
+const getStoreLabel = (product: GetProductsResponse[number]) => {
+  if (product.purchase_type === "qrcode") {
+    return "Pagamento direto (PIX)";
+  }
+
+  const preferredUrl = product.url || product.affiliate_url;
+  if (!preferredUrl) {
+    return "Nao informada";
+  }
+
+  try {
+    const hostname = new URL(preferredUrl).hostname.replace(/^www\./i, "");
+    return hostname || "Nao informada";
+  } catch {
+    return "Nao informada";
+  }
+};
+
 export function ProductsDisplay({ listId, products, isLoading }: ProductListProps) {
   if (isLoading) {
     return (
@@ -68,76 +86,92 @@ export function ProductsDisplay({ listId, products, isLoading }: ProductListProp
   return (
     <div className="flex flex-col gap-4 overflow-y-auto h-full">
       {products.map((product) => (
-        <Card key={product.id} className="flex flex-col md:flex-row gap-4 items-start p-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={product.image_url || "https://picsum.photos/200"}
-            alt={product.name}
-            className="rounded object-cover w-full md:w-24 h-24"
-          />
-          <CardContent className="p-0 flex flex-col gap-2 w-full">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-md font-semibold">{product.name}</h3>
-                <Badge variant="secondary">{getModeLabel(product.purchase_type)}</Badge>
-              </div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <EllipsisVertical />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0 w-42" align="end">
-                  <div>
-                    <EditProductDialog
-                      listId={listId}
-                      product={product}
-                      trigger={(
-                        <button
-                          type="button"
-                          className="w-full flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors"
-                        >
-                          <Pencil size={20} />
-                          Editar produto
-                        </button>
-                      )}
-                    />
-                    <Separator />
-                    <DeleteProductAlert
-                      listId={listId}
-                      productId={product.id}
-                      productName={product.name}
-                      trigger={(
-                        <button
-                          type="button"
-                          className="w-full flex items-center gap-2 text-red-400 hover:bg-red-100 p-2 transition-colors"
-                        >
-                          <Trash2 size={20} />
-                          Excluir produto
-                        </button>
-                      )}
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
+        <Card key={product.id} className="overflow-hidden p-0">
+          <div className="flex flex-col md:flex-row">
+            <div className="w-full md:w-36 md:min-w-36 md:self-stretch">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={product.image_url || "https://picsum.photos/400/400"}
+                alt={product.name}
+                className="h-40 w-full object-cover md:h-full"
+              />
             </div>
-            <p className="text-sm text-gray-500">{product.description || "Sem descricao"}</p>
-            <p className="text-sm text-muted-foreground">
-              {formatPrice(product.price, product.currency)} • Quantidade: {product.quantity}
-            </p>
-            {product.url && (
-              <a
-                href={product.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary underline"
-              >
-                Ver produto
-              </a>
-            )}
-          </CardContent>
+            <CardContent className="p-4 flex flex-col gap-3 w-full">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-md font-semibold">{product.name}</h3>
+                  <Badge variant="secondary" className="w-fit">
+                    {getModeLabel(product.purchase_type)}
+                  </Badge>
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <EllipsisVertical />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-42" align="end">
+                    <div>
+                      <EditProductDialog
+                        listId={listId}
+                        product={product}
+                        trigger={(
+                          <button
+                            type="button"
+                            className="w-full flex items-center gap-2 text-muted-foreground hover:bg-gray-100 p-2 transition-colors"
+                          >
+                            <Pencil size={20} />
+                            Editar produto
+                          </button>
+                        )}
+                      />
+                      <Separator />
+                      <DeleteProductAlert
+                        listId={listId}
+                        productId={product.id}
+                        productName={product.name}
+                        trigger={(
+                          <button
+                            type="button"
+                            className="w-full flex items-center gap-2 text-red-400 hover:bg-red-100 p-2 transition-colors"
+                          >
+                            <Trash2 size={20} />
+                            Excluir produto
+                          </button>
+                        )}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <p>
+                  <span className="text-muted-foreground">Valor: </span>
+                  <span className="font-medium">{formatPrice(product.price, product.currency)}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Loja: </span>
+                  <span className="font-medium">{getStoreLabel(product)}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Metodo: </span>
+                  <span className="font-medium">{getModeLabel(product.purchase_type)}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Confirmacao: </span>
+                  <span className={product.gifted_count && product.gifted_count > 0 ? "font-medium text-emerald-700" : "font-medium"}>
+                    {product.gifted_count && product.gifted_count > 0
+                      ? `Sim (${product.gifted_count} convidado${product.gifted_count > 1 ? "s" : ""})`
+                      : "Nao"}
+                  </span>
+                </p>
+              </div>
+            </CardContent>
+          </div>
         </Card>
       ))}
     </div>
   );
 }
+
+

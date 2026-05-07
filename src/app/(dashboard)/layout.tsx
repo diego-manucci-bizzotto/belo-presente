@@ -4,9 +4,9 @@ import Header from "@/components/app/(dashboard)/header";
 
 function RootLayout({children,}: Readonly<{ children: React.ReactNode;}>) {
   return (
-    <div className={`flex flex-col min-h-screen`}>
+    <div className="flex min-h-dvh flex-col">
         <Header />
-        <main className='container mx-auto h-[calc(100vh-80px)]'>
+        <main className="container mx-auto flex-1">
           {children}
         </main>
     </div>

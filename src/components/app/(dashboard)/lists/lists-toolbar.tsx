@@ -1,9 +1,9 @@
 "use client";
 
 import {useRouter} from "next/navigation";
-import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
+import {FilterActionsToolbar} from "@/components/app/(dashboard)/filter-actions-toolbar";
 
 interface ListsHeaderProps {
   filter: string;
@@ -18,18 +18,16 @@ export function ListsToolbar({filter, handleFilterChangeAction}: ListsHeaderProp
   };
 
   return (
-    <div className='flex justify-between gap-4 items-center'>
-      <Input
-        value={filter}
-        onChange={(e) => handleFilterChangeAction(e.target.value)}
-        type='text'
-        placeholder='Filtrar listas...'
-        className='w-full md:max-w-sm'
-      />
-      <Button onClick={navigateToNewList} className="bg-[#b1563c] text-white hover:bg-[#a0452f]">
-        <Plus/>
-        Nova lista
-      </Button>
-    </div>
+    <FilterActionsToolbar
+      filter={filter}
+      placeholder="Filtrar listas..."
+      onFilterChangeAction={handleFilterChangeAction}
+      action={(
+        <Button onClick={navigateToNewList} className="bg-[#b1563c] text-white hover:bg-[#a0452f] sm:w-auto">
+          <Plus/>
+          Nova lista
+        </Button>
+      )}
+    />
   );
 }

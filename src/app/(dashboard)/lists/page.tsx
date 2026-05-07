@@ -29,7 +29,7 @@ export default function Page() {
   }
 
   return (
-    <main className="flex flex-col gap-4 flex-grow p-4 h-full">
+    <main className="flex min-h-full flex-col gap-4 p-3 md:p-4">
       <ListsTitle/>
       <ListsToolbar filter={filter} handleFilterChangeAction={handleFilterChange}/>
       <ListsDisplay isLoading={lists.isLoading || lists.isPending} hasInitialData={hasInitialData} filteredLists={filteredLists}/>

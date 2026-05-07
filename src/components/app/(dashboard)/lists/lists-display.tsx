@@ -14,7 +14,7 @@ interface ListsDisplayProps {
 export function ListsDisplay({ isLoading, hasInitialData, filteredLists }: ListsDisplayProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 auto-rows-min gap-4 h-full overflow-y-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 auto-rows-min gap-4">
         {[...Array(6)].map((_, index) => (
           <Skeleton key={index} className="col-span-1 h-[144.5px] w-full rounded-md bg-gray-200 animate-pulse" />
         ))}
@@ -24,7 +24,7 @@ export function ListsDisplay({ isLoading, hasInitialData, filteredLists }: Lists
 
   if (!hasInitialData) {
     return (
-      <div className="col-span-3 text-center p-4 flex justify-center items-center flex-col gap-8 h-full">
+      <div className="col-span-3 text-center p-4 py-10 flex justify-center items-center flex-col gap-8">
         <div className='flex flex-col'>
           <h3 className="text-lg font-semibold">Ainda não há nada por aqui!</h3>
           <p className="text-muted-foreground">Clique no botão &#34;Nova lista&#34; para começar a criar sua primeira lista de presentes!</p>
@@ -36,7 +36,7 @@ export function ListsDisplay({ isLoading, hasInitialData, filteredLists }: Lists
 
   if (filteredLists.length === 0) {
     return (
-      <div className="col-span-3 text-center p-4 flex justify-center items-center flex-col gap-8 h-full">
+      <div className="col-span-3 text-center p-4 py-10 flex justify-center items-center flex-col gap-8">
         <div className='flex flex-col'>
           <h3 className="text-lg font-semibold">Nenhuma lista encontrada!</h3>
           <p className="text-muted-foreground">
@@ -49,7 +49,7 @@ export function ListsDisplay({ isLoading, hasInitialData, filteredLists }: Lists
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 auto-rows-min gap-4 h-full overflow-y-auto">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 auto-rows-min gap-4">
       {filteredLists.map(list => (
         <ListCard list={list} key={list.id} />
       ))}

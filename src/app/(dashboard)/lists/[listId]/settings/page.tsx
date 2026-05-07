@@ -91,14 +91,14 @@ export default function Page() {
 
   if (!list.data) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full py-10 flex items-center justify-center">
         <p className="text-muted-foreground">Nao foi possivel carregar as configuracoes da lista.</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col gap-4 overflow-scroll">
+    <div className="w-full flex flex-col gap-4">
       <Card>
         <CardHeader>
           <CardTitle>Configuracoes da lista</CardTitle>
@@ -117,7 +117,7 @@ export default function Page() {
                     <FormLabel>Status da lista</FormLabel>
                     <FormControl>
                       <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="min-w-sm">
+                        <SelectTrigger className="w-full md:max-w-sm">
                           <SelectValue placeholder="Selecione o status"/>
                         </SelectTrigger>
                         <SelectContent>
@@ -159,7 +159,7 @@ export default function Page() {
               <div className="flex justify-end">
                 <Button type="submit" className="bg-[#b1563c] text-white hover:bg-[#a0452f]"
                         disabled={updateList.isPending}>
-                  {updateList.isPending && <Loader2Icon className="animate-spin"/>}
+                  {updateList.isPending && <Loader2Icon className="mr-2 size-4 animate-spin"/>}
                   Salvar alteracoes
                 </Button>
               </div>

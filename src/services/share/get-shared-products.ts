@@ -10,6 +10,7 @@ export type SharedProductResponse = {
   name: string;
   description: string | null;
   url: string | null;
+  affiliate_url: string | null;
   image_url: string | null;
   price: number | null;
   currency: string;

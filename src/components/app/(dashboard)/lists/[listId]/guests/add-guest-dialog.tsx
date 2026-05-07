@@ -25,7 +25,7 @@ export function AddGuestDialog({ listId }: AddGuestDialogProps) {
       <DialogTrigger asChild>
         <Button className="bg-[#b1563c] text-white hover:bg-[#a0452f]">
           <Plus />
-          <span className="hidden md:block">Adicionar convidado</span>
+          Adicionar convidado
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">

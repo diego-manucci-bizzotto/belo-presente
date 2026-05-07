@@ -9,6 +9,7 @@ type ProductRequestBody = {
   name?: unknown;
   description?: unknown;
   url?: unknown;
+  affiliate_url?: unknown;
   image_url?: unknown;
   price?: unknown;
   currency?: unknown;
@@ -90,6 +91,7 @@ export async function POST(
   const name = normalizeOptionalString(body.name);
   const description = normalizeOptionalString(body.description);
   const url = normalizeOptionalString(body.url);
+  const affiliateUrl = normalizeOptionalString(body.affiliate_url);
   const imageUrl = normalizeOptionalString(body.image_url);
   const purchaseType = body.purchase_type;
   const currencyRaw = normalizeOptionalString(body.currency);
@@ -123,8 +125,8 @@ export async function POST(
     return NextResponse.json({ error: "Preco obrigatorio para pagamento por QR code" }, { status: 400 });
   }
 
-  if (purchaseType === "redirect" && !url) {
-    return NextResponse.json({ error: "URL obrigatoria para redirecionamento" }, { status: 400 });
+  if (purchaseType === "redirect" && !url && !affiliateUrl) {
+    return NextResponse.json({ error: "Informe URL da loja ou link de afiliado para redirecionamento" }, { status: 400 });
   }
 
   if (purchaseType === "qrcode" && !imageUrl) {
@@ -133,6 +135,10 @@ export async function POST(
 
   if (url && !isValidUrl(url)) {
     return NextResponse.json({ error: "URL do produto invalida" }, { status: 400 });
+  }
+
+  if (affiliateUrl && !isValidUrl(affiliateUrl)) {
+    return NextResponse.json({ error: "Link de afiliado invalido" }, { status: 400 });
   }
 
   if (imageUrl && !isValidUrl(imageUrl)) {
@@ -145,6 +151,7 @@ export async function POST(
       name,
       description,
       url,
+      affiliateUrl,
       imageUrl,
       price: priceRaw === null ? undefined : priceRaw,
       currency: currencyRaw.toUpperCase(),

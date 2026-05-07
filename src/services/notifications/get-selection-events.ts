@@ -14,7 +14,12 @@ export type GetSelectionEventsRequest = {
   listId: string;
 };
 
-export type GetSelectionEventsResponse = SelectionEvent[];
+export type GetSelectionEventsResponse = {
+  events: SelectionEvent[];
+  channels: {
+    email_configured: boolean;
+  };
+};
 
 export const getSelectionEvents = async ({
   listId,

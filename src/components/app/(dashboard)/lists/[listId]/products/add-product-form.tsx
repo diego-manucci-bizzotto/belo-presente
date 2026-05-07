@@ -19,6 +19,7 @@ import { CreateProductResponse } from "@/services/products/create-product";
 const schema = z.object({
   autofill: z.boolean(),
   url: z.string().url("URL invalida").optional().or(z.literal("")),
+  affiliateUrl: z.string().url("Link de afiliado invalido").optional().or(z.literal("")),
   imageUrl: z.string().url("URL da imagem invalida").optional().or(z.literal("")),
   name: z.string().min(1, "O nome e obrigatorio").max(100, "O nome deve ter no maximo 100 caracteres"),
   description: z.string().max(512, "A descricao deve ter no maximo 512 caracteres").optional(),
@@ -37,11 +38,11 @@ const schema = z.object({
     });
   }
 
-  if (data.purchaseType === "redirect" && !data.url) {
+  if (data.purchaseType === "redirect" && !data.url && !data.affiliateUrl) {
     ctx.addIssue({
       path: ["url"],
       code: z.ZodIssueCode.custom,
-      message: "A URL e obrigatoria para redirecionamento",
+      message: "Informe URL da loja ou link de afiliado",
     });
   }
 
@@ -80,6 +81,7 @@ export function AddProductForm({
     defaultValues: {
       autofill: true,
       url: product?.url ?? "",
+      affiliateUrl: product?.affiliate_url ?? "",
       imageUrl: product?.image_url ?? "",
       name: product?.name ?? "",
       description: product?.description ?? "",
@@ -104,6 +106,7 @@ export function AddProductForm({
       name: data.name.trim(),
       description: data.description?.trim() || undefined,
       url: data.url?.trim() || undefined,
+      affiliate_url: data.affiliateUrl?.trim() || undefined,
       image_url: data.imageUrl?.trim() || undefined,
       price: data.price ?? undefined,
       currency: data.currency.trim().toUpperCase(),
@@ -125,6 +128,7 @@ export function AddProductForm({
       form.reset({
         autofill: true,
         url: "",
+        affiliateUrl: "",
         imageUrl: "",
         name: "",
         description: "",
@@ -168,6 +172,29 @@ export function AddProductForm({
                 <FormControl>
                   <Input {...field} type="url" placeholder="https://exemplo.com/produto" />
                 </FormControl>
+                {purchaseType === "redirect" && (
+                  <FormDescription>
+                    Para redirecionamento, preencha URL da loja ou o link de afiliado.
+                  </FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="affiliateUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Link de afiliado <span className="text-muted-foreground">(opcional)</span>
+                </FormLabel>
+                <FormControl>
+                  <Input {...field} type="url" placeholder="https://exemplo.com/produto?ref=seucodigo" />
+                </FormControl>
+                <FormDescription>
+                  Quando informado, este link tera prioridade no botao de compra da lista publica.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

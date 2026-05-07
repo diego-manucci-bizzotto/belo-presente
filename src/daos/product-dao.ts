@@ -8,6 +8,7 @@ type ProductRow = {
   name: string;
   description: string | null;
   url: string | null;
+  affiliate_url: string | null;
   image_url: string | null;
   price: string | number | null;
   currency: string;
@@ -24,6 +25,7 @@ type CreateProductInput = {
   name: string;
   description?: string;
   url?: string;
+  affiliateUrl?: string;
   imageUrl?: string;
   price?: number;
   currency: string;
@@ -42,6 +44,7 @@ const mapProductRow = (row: ProductRow) => {
     name: row.name,
     description: row.description,
     url: row.url,
+    affiliate_url: row.affiliate_url,
     image_url: row.image_url,
     price: row.price === null ? null : Number(row.price),
     currency: row.currency,
@@ -66,6 +69,7 @@ export class ProductDAO {
       name,
       description,
       url,
+      affiliateUrl,
       imageUrl,
       price,
       currency,
@@ -79,14 +83,15 @@ export class ProductDAO {
 
     const { rows } = await runner.query(
       `INSERT INTO product
-       (list_id, name, description, url, image_url, price, currency, quantity, purchase_type)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id, list_id, name, description, url, image_url, price, currency, quantity, purchase_type, created_at, is_active`,
+       (list_id, name, description, url, affiliate_url, image_url, price, currency, quantity, purchase_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id, list_id, name, description, url, affiliate_url, image_url, price, currency, quantity, purchase_type, created_at, is_active`,
       [
         listId,
         name,
         description ?? null,
         url ?? null,
+        affiliateUrl ?? null,
         imageUrl ?? null,
         price ?? null,
         currency,
@@ -107,7 +112,7 @@ export class ProductDAO {
     const runner = client || db;
 
     const { rows } = await runner.query(
-      `SELECT id, list_id, name, description, url, image_url, price, currency, quantity, purchase_type, created_at, is_active
+      `SELECT id, list_id, name, description, url, affiliate_url, image_url, price, currency, quantity, purchase_type, created_at, is_active
        FROM product
        WHERE id = $1 AND list_id = $2 AND is_active = TRUE`,
       [productId, listId]
@@ -127,6 +132,7 @@ export class ProductDAO {
       name,
       description,
       url,
+      affiliateUrl,
       imageUrl,
       price,
       currency,
@@ -143,19 +149,21 @@ export class ProductDAO {
        SET name = $3,
            description = $4,
            url = $5,
-           image_url = $6,
-           price = $7,
-           currency = $8,
-           quantity = $9,
-           purchase_type = $10
+           affiliate_url = $6,
+           image_url = $7,
+           price = $8,
+           currency = $9,
+           quantity = $10,
+           purchase_type = $11
        WHERE id = $1 AND list_id = $2 AND is_active = TRUE
-       RETURNING id, list_id, name, description, url, image_url, price, currency, quantity, purchase_type, created_at, is_active`,
+       RETURNING id, list_id, name, description, url, affiliate_url, image_url, price, currency, quantity, purchase_type, created_at, is_active`,
       [
         productId,
         listId,
         name,
         description ?? null,
         url ?? null,
+        affiliateUrl ?? null,
         imageUrl ?? null,
         price ?? null,
         currency,
@@ -194,10 +202,31 @@ export class ProductDAO {
     const runner = client || db;
 
     const { rows } = await runner.query(
-      `SELECT id, list_id, name, description, url, image_url, price, currency, quantity, purchase_type, created_at, is_active
-       FROM product
-       WHERE list_id = $1 AND is_active = TRUE
-       ORDER BY created_at DESC`,
+      `SELECT
+         p.id,
+         p.list_id,
+         p.name,
+         p.description,
+         p.url,
+         p.affiliate_url,
+         p.image_url,
+         p.price,
+         p.currency,
+         p.quantity,
+         p.purchase_type,
+         p.created_at,
+         p.is_active,
+         COALESCE(g.gifted_count, 0) AS gifted_count,
+         GREATEST(p.quantity - COALESCE(g.gifted_count, 0), 0) AS remaining_quantity
+       FROM product p
+       LEFT JOIN (
+         SELECT product_id, COUNT(*) AS gifted_count
+         FROM gift_intent
+         WHERE status <> 'cancelled'
+         GROUP BY product_id
+       ) g ON g.product_id = p.id
+       WHERE p.list_id = $1 AND p.is_active = TRUE
+       ORDER BY p.created_at DESC`,
       [listId]
     );
 
@@ -218,6 +247,7 @@ export class ProductDAO {
          p.name,
          p.description,
          p.url,
+         p.affiliate_url,
          p.image_url,
          p.price,
          p.currency,
@@ -232,6 +262,7 @@ export class ProductDAO {
        LEFT JOIN (
          SELECT product_id, COUNT(*) AS gifted_count
          FROM gift_intent
+         WHERE status <> 'cancelled'
          GROUP BY product_id
        ) g ON g.product_id = p.id
        WHERE l.share_id = $1
@@ -259,6 +290,7 @@ export class ProductDAO {
          p.name,
          p.description,
          p.url,
+         p.affiliate_url,
          p.image_url,
          p.price,
          p.currency,
@@ -273,6 +305,7 @@ export class ProductDAO {
        LEFT JOIN (
          SELECT product_id, COUNT(*) AS gifted_count
          FROM gift_intent
+         WHERE status <> 'cancelled'
          GROUP BY product_id
        ) g ON g.product_id = p.id
        WHERE p.id = $1

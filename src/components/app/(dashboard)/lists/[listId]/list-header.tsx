@@ -4,20 +4,11 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useGetList } from "@/hooks/use-get-list";
 import { useGetListFeatures } from "@/hooks/use-get-list-features";
 import { getVisibleListNavFeatures } from "@/components/app/(dashboard)/lists/[listId]/list-nav-features";
+import { ListMobileNav } from "@/components/app/(dashboard)/lists/[listId]/list-mobile-nav";
 
 interface ListHeaderProps {
   listId: number;
@@ -28,88 +19,33 @@ export function ListHeader({ listId, pathname }: ListHeaderProps) {
   const router = useRouter();
   const { data: list, isLoading, isPending } = useGetList({ listId });
   const listFeatures = useGetListFeatures({ listId: String(listId) });
-  const lastPathSegment = pathname.split("/").pop();
 
   const visibleFeatures = useMemo(() => {
     return getVisibleListNavFeatures(listFeatures.data);
   }, [listFeatures.data]);
   const shareEnabled = listFeatures.data?.share_enabled ?? true;
 
-  const functionalities = visibleFeatures.filter((feature) => feature.section === "functionalities");
-  const management = visibleFeatures.filter((feature) => feature.section === "management");
-  const selectedFeature = visibleFeatures.some((feature) => feature.value === lastPathSegment)
-    ? lastPathSegment
-    : undefined;
-
-  const handleNavigate = (value: string) => {
-    router.push(`/lists/${listId}/${value}`);
-  };
-
   return (
-    <div className="flex w-full justify-between gap-4 items-start flex-col">
-      <div className="flex w-full justify-between items-center gap-4">
+    <div className="flex w-full flex-col gap-2">
+      <div className="flex w-full items-start justify-between gap-2">
         {isLoading || isPending ? (
           <Skeleton className="h-8 w-48 bg-gray-200" />
         ) : (
-          <h1 className="text-2xl font-bold">{list?.title}</h1>
+          <h1 className="text-lg font-bold md:text-2xl">{list?.title}</h1>
         )}
         {shareEnabled && (
-          <Button variant="outline" onClick={() => router.push(`/share/${list?.share_id || listId}`)}>
-            <ExternalLink />
-            Visitar lista
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 shrink-0 gap-2"
+            onClick={() => router.push(`/share/${list?.share_id || listId}`)}
+          >
+            <ExternalLink className="size-4" />
+            <span className="hidden sm:inline">Visitar lista</span>
           </Button>
         )}
-        <Select value={selectedFeature} onValueChange={handleNavigate}>
-          <SelectTrigger className="w-full w-auto hover:cursor-pointer text-primary md:hidden">
-            <SelectValue placeholder="Selecione" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Funcionalidades</SelectLabel>
-              {functionalities.map((feature) => (
-                <SelectItem
-                  key={feature.value}
-                  value={feature.value}
-                  className={cn(
-                    "hover:cursor-pointer text-muted-foreground hover:text-black",
-                    feature.value.includes(lastPathSegment || "") &&
-                      "text-primary! hover:text-primary! hover:cursor-default bg-white! hover:bg-white!"
-                  )}
-                >
-                  <feature.icon
-                    className={cn(
-                      "inline-block mr-2 size-4 hover:text-black",
-                      feature.value.includes(lastPathSegment || "") && "text-primary"
-                    )}
-                  />
-                  {feature.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-            <SelectGroup>
-              <SelectLabel>Gestao</SelectLabel>
-              {management.map((feature) => (
-                <SelectItem
-                  key={feature.value}
-                  value={feature.value}
-                  className={cn(
-                    "hover:cursor-pointer text-muted-foreground hover:text-black",
-                    feature.value.includes(lastPathSegment || "") && "text-primary"
-                  )}
-                >
-                  <feature.icon
-                    className={cn(
-                      "inline-block mr-2 size-4 hover:text-black",
-                      feature.value.includes(lastPathSegment || "") && "text-primary"
-                    )}
-                  />
-                  {feature.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
       </div>
+      <ListMobileNav listId={listId} pathname={pathname} features={visibleFeatures} />
       {!isLoading && !isPending && !list?.active && (
         <p className="text-muted-foreground text-sm">
           Esta lista esta pausada no momento. Para que seus convidados possam acessa-la, va ate as configuracoes e mude

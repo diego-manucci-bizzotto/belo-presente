@@ -20,6 +20,26 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Database Migration
+
+Use the SQL migration files below to provision the current foundation:
+
+- `migrations/20260507_001_feature_flags_foundation.sql`
+- `migrations/20260507_002_gallery_foundation.sql`
+- `migrations/20260507_003_contributions_foundation.sql`
+- `migrations/20260507_004_affiliate_links_monetization.sql`
+
+You can apply it with any Postgres client (for example `psql`) using your project database credentials from `.env.local`.
+
+## QA Smoke Checklist
+
+After migration and deploy, run:
+
+- `docs/qa/feature-flags-smoke-checklist.md`
+- `docs/qa/gallery-smoke-checklist.md`
+- `docs/qa/contributions-smoke-checklist.md`
+- `docs/qa/monetization-smoke-checklist.md`
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

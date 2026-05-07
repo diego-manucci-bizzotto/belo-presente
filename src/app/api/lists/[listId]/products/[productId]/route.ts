@@ -9,6 +9,7 @@ type ProductRequestBody = {
   name?: unknown;
   description?: unknown;
   url?: unknown;
+  affiliate_url?: unknown;
   image_url?: unknown;
   price?: unknown;
   currency?: unknown;
@@ -47,6 +48,7 @@ const validateProductPayload = (body: ProductRequestBody) => {
   const name = normalizeOptionalString(body.name);
   const description = normalizeOptionalString(body.description);
   const url = normalizeOptionalString(body.url);
+  const affiliateUrl = normalizeOptionalString(body.affiliate_url);
   const imageUrl = normalizeOptionalString(body.image_url);
   const purchaseType = body.purchase_type;
   const currencyRaw = normalizeOptionalString(body.currency);
@@ -80,8 +82,8 @@ const validateProductPayload = (body: ProductRequestBody) => {
     return { error: "Preco obrigatorio para pagamento por QR code", status: 400 as const };
   }
 
-  if (purchaseType === "redirect" && !url) {
-    return { error: "URL obrigatoria para redirecionamento", status: 400 as const };
+  if (purchaseType === "redirect" && !url && !affiliateUrl) {
+    return { error: "Informe URL da loja ou link de afiliado para redirecionamento", status: 400 as const };
   }
 
   if (purchaseType === "qrcode" && !imageUrl) {
@@ -92,6 +94,10 @@ const validateProductPayload = (body: ProductRequestBody) => {
     return { error: "URL do produto invalida", status: 400 as const };
   }
 
+  if (affiliateUrl && !isValidUrl(affiliateUrl)) {
+    return { error: "Link de afiliado invalido", status: 400 as const };
+  }
+
   if (imageUrl && !isValidUrl(imageUrl)) {
     return { error: "URL da imagem invalida", status: 400 as const };
   }
@@ -100,6 +106,7 @@ const validateProductPayload = (body: ProductRequestBody) => {
     name,
     description,
     url,
+    affiliateUrl,
     imageUrl,
     price: priceRaw === null ? undefined : priceRaw,
     currency: currencyRaw.toUpperCase(),
@@ -144,6 +151,7 @@ export async function PATCH(
       name: validatedPayload.name,
       description: validatedPayload.description,
       url: validatedPayload.url,
+      affiliateUrl: validatedPayload.affiliateUrl,
       imageUrl: validatedPayload.imageUrl,
       price: validatedPayload.price,
       currency: validatedPayload.currency,

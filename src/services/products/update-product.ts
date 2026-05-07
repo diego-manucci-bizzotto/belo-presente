@@ -7,6 +7,7 @@ export type UpdateProductRequest = {
     name: string;
     description?: string;
     url?: string;
+    affiliate_url?: string;
     image_url?: string;
     price?: number;
     currency: string;

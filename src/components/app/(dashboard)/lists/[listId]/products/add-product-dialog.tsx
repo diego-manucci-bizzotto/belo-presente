@@ -21,10 +21,10 @@ export function AddProductDialog({ listId }: AddProductDialogProps) {
       <DialogTrigger asChild>
         <Button className="bg-[#b1563c] text-white hover:bg-[#a0452f]">
           <Plus />
-          <span className='hidden md:block'>Adicionar produto</span>
+          Adicionar produto
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[1900px]">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>📦 Adicionar produto</DialogTitle>
           <DialogDescription>

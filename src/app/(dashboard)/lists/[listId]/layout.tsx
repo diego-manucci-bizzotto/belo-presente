@@ -10,9 +10,9 @@ export default function RootLayout({ children, params }: Readonly<{ children: Re
   const { listId } = use(params);
 
   return (
-    <div className="flex flex-col items-start gap-4 flex-grow p-4 h-full">
+    <div className="flex min-h-full flex-col items-start gap-4 p-3 md:p-4">
       <ListHeader listId={Number(listId)} pathname={pathname} />
-      <div className='flex flex-col md:flex-row w-full gap-8 flex-grow min-h-0'>
+      <div className="flex w-full flex-col gap-4 md:flex-row md:gap-8">
         <ListSidebarNav listId={Number(listId)} pathname={pathname}/>
         {children}
       </div>

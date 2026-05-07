@@ -58,10 +58,6 @@ export const getVisibleListNavFeatures = (flags?: FeatureFlags): ListNavFeature[
       return resolvedFlags.attendance_confirmation_enabled;
     }
 
-    if (feature.value === "payments") {
-      return resolvedFlags.contributions_enabled;
-    }
-
     return true;
   });
 };

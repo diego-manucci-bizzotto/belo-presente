@@ -4,6 +4,16 @@ import { PoolClient } from "pg";
 export class UserDAO {
   private constructor() {}
 
+  public static async getUserById(userId: string, client?: PoolClient) {
+    const db = Database.getInstance();
+    const runner = client || db;
+    const { rows } = await runner.query(
+      'SELECT id, email FROM "user" WHERE id = $1',
+      [userId]
+    );
+    return rows[0];
+  }
+
   public static async findUserByEmail(email: string, client?: PoolClient) {
     const db = Database.getInstance();
     const runner = client || db;

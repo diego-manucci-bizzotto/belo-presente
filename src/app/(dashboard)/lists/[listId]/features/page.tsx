@@ -107,7 +107,7 @@ export default function Page() {
   }
 
   return (
-    <div className="w-full flex flex-col gap-4 overflow-scroll">
+    <div className="w-full flex flex-col gap-4">
       <Card>
         <CardHeader>
           <div className="flex items-start gap-4">
