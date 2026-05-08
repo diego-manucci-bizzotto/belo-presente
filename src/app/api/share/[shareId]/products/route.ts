@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { ProductDAO } from "@/daos/product-dao";
 import { ListDAO } from "@/daos/list-dao";
+import { GiftIntentDAO } from "@/daos/gift-intent-dao";
 import { resolveListFeatureFlags } from "@/lib/list-feature-flags-resolver";
+import { normalizePhone } from "@/lib/phone";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ shareId: string }> }
 ) {
   const { shareId } = await context.params;
@@ -27,8 +29,37 @@ export async function GET(
     }
 
     const products = await ProductDAO.getPublicProductsByShareId(shareId);
+    const { searchParams } = new URL(req.url);
+    const guestPhone = normalizePhone(searchParams.get("guest_phone") ?? "");
 
-    return NextResponse.json(products, { status: 200 });
+    if (!guestPhone) {
+      return NextResponse.json(
+        products.map((product) => ({
+          ...product,
+          selected_by_me: false,
+          my_gift_intent_id: null,
+        })),
+        { status: 200 }
+      );
+    }
+
+    const selectedMap = await GiftIntentDAO.getActiveSelectionsMapByListAndGuestPhone(
+      String(list.id),
+      guestPhone
+    );
+
+    return NextResponse.json(
+      products.map((product) => {
+        const myGiftIntentId = selectedMap[product.id] ?? null;
+
+        return {
+          ...product,
+          selected_by_me: Boolean(myGiftIntentId),
+          my_gift_intent_id: myGiftIntentId,
+        };
+      }),
+      { status: 200 }
+    );
   } catch {
     return NextResponse.json({ error: "Erro ao buscar produtos da lista publica" }, { status: 500 });
   }

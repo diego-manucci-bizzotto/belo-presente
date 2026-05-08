@@ -1,8 +1,8 @@
 export type CreateGiftIntentRequest = {
   shareId: string;
   productId: string;
-  guest_name?: string;
-  guest_phone?: string;
+  guest_name: string;
+  guest_phone: string;
   guest_message?: string;
 };
 
@@ -11,6 +11,7 @@ type RedirectGiftIntentResponse = {
   purchase_type: "redirect";
   redirect_url: string;
   gift_intent_id: string;
+  already_selected: boolean;
 };
 
 type QrCodeGiftIntentResponse = {
@@ -20,6 +21,7 @@ type QrCodeGiftIntentResponse = {
   amount: number;
   currency: string;
   gift_intent_id: string;
+  already_selected: boolean;
 };
 
 export type CreateGiftIntentResponse =

@@ -124,6 +124,60 @@ export class GiftIntentDAO {
     return mapGiftIntentRow(rows[0] as GiftIntentRow);
   }
 
+  public static async getActiveByProductListAndGuestPhone(
+    productId: string,
+    listId: string,
+    guestPhone: string,
+    client?: PoolClient
+  ) {
+    const db = Database.getInstance();
+    const runner = client || db;
+
+    const { rows } = await runner.query(
+      `SELECT id, list_id, product_id, guest_name, guest_phone, guest_message, purchase_type, amount, currency, status, created_at
+       FROM gift_intent
+       WHERE product_id = $1
+         AND list_id = $2
+         AND status <> 'cancelled'
+         AND regexp_replace(guest_phone, '\\D', '', 'g') = $3
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [productId, listId, guestPhone]
+    );
+
+    if (!rows[0]) {
+      return null;
+    }
+
+    return mapGiftIntentRow(rows[0] as GiftIntentRow);
+  }
+
+  public static async getActiveSelectionsMapByListAndGuestPhone(
+    listId: string,
+    guestPhone: string,
+    client?: PoolClient
+  ) {
+    const db = Database.getInstance();
+    const runner = client || db;
+
+    const { rows } = await runner.query(
+      `SELECT DISTINCT ON (product_id)
+         id,
+         product_id
+       FROM gift_intent
+       WHERE list_id = $1
+         AND status <> 'cancelled'
+         AND regexp_replace(guest_phone, '\\D', '', 'g') = $2
+       ORDER BY product_id, created_at DESC`,
+      [listId, guestPhone]
+    );
+
+    return rows.reduce<Record<string, string>>((acc, row) => {
+      acc[String(row.product_id)] = String(row.id);
+      return acc;
+    }, {});
+  }
+
   public static async cancelByIdAndProductAndList(
     giftIntentId: string,
     productId: string,

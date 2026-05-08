@@ -1,4 +1,5 @@
 export type GuestStatus = "pending" | "confirmed" | "declined";
+export type GuestAttendeeType = "adult" | "child";
 
 export type CreateGuestRequest = {
   list_id: string;
@@ -8,6 +9,9 @@ export type CreateGuestRequest = {
     phone?: string;
     note?: string;
     status: GuestStatus;
+    attendee_type?: GuestAttendeeType;
+    has_companion?: boolean;
+    companion_name?: string;
   };
 };
 
@@ -19,6 +23,9 @@ export type CreateGuestResponse = {
   phone: string | null;
   note: string | null;
   status: GuestStatus;
+  attendee_type: GuestAttendeeType;
+  has_companion: boolean;
+  companion_name: string | null;
   created_at: string;
   is_active: boolean;
 };

@@ -58,7 +58,8 @@ CREATE TABLE list (
     user_id BIGINT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     share_id TEXT UNIQUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
-    active BOOLEAN DEFAULT TRUE
+    active BOOLEAN DEFAULT TRUE,
+    background_theme TEXT NOT NULL DEFAULT 'waves_sides'
 );
 
 CREATE TABLE "product" (
@@ -98,6 +99,9 @@ CREATE TABLE guest (
     phone VARCHAR(30),
     note VARCHAR(512),
     status TEXT DEFAULT 'pending' NOT NULL, -- 'pending', 'confirmed' or 'declined'
+    attendee_type TEXT DEFAULT 'adult' NOT NULL, -- 'adult' or 'child'
+    has_companion BOOLEAN DEFAULT FALSE NOT NULL,
+    companion_name VARCHAR(120),
     created_at TIMESTAMPTZ DEFAULT now(),
     is_active BOOLEAN DEFAULT TRUE
 );

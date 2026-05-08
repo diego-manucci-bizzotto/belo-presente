@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { ListDAO } from "@/daos/list-dao";
 import { GuestDAO } from "@/daos/guest-dao";
-import { GuestStatus } from "@/services/guests/create-guest";
+import { GuestAttendeeType, GuestStatus } from "@/services/guests/create-guest";
 import { resolveListFeatureFlags } from "@/lib/list-feature-flags-resolver";
 
 type CreateRsvpBody = {
@@ -10,10 +10,17 @@ type CreateRsvpBody = {
   phone?: unknown;
   note?: unknown;
   status?: unknown;
+  attendee_type?: unknown;
+  has_companion?: unknown;
+  companion_name?: unknown;
 };
 
 const isValidStatus = (value: unknown): value is GuestStatus => {
   return value === "pending" || value === "confirmed" || value === "declined";
+};
+
+const isValidAttendeeType = (value: unknown): value is GuestAttendeeType => {
+  return value === "adult" || value === "child";
 };
 
 const normalizeOptionalString = (value: unknown): string | undefined => {
@@ -62,6 +69,9 @@ export async function POST(
   const phone = normalizeOptionalString(body.phone);
   const note = normalizeOptionalString(body.note);
   const status = body.status;
+  const attendeeType = body.attendee_type ?? "adult";
+  const companionName = normalizeOptionalString(body.companion_name);
+  const hasCompanion = body.has_companion;
 
   if (!name || name.length > 120) {
     return NextResponse.json({ error: "Nome invalido" }, { status: 400 });
@@ -83,6 +93,23 @@ export async function POST(
     return NextResponse.json({ error: "Status de presenca invalido" }, { status: 400 });
   }
 
+  if (!isValidAttendeeType(attendeeType)) {
+    return NextResponse.json({ error: "Tipo de convidado invalido" }, { status: 400 });
+  }
+
+  if (hasCompanion !== undefined && typeof hasCompanion !== "boolean") {
+    return NextResponse.json({ error: "Informacao de acompanhante invalida" }, { status: 400 });
+  }
+
+  if (companionName && companionName.length > 120) {
+    return NextResponse.json({ error: "Nome do acompanhante muito longo" }, { status: 400 });
+  }
+
+  const resolvedHasCompanion = Boolean(hasCompanion);
+  if (resolvedHasCompanion && !companionName) {
+    return NextResponse.json({ error: "Nome do acompanhante e obrigatorio" }, { status: 400 });
+  }
+
   try {
     const createdGuest = await GuestDAO.createGuest({
       listId: String(list.id),
@@ -91,6 +118,9 @@ export async function POST(
       phone,
       note,
       status,
+      attendee_type: attendeeType,
+      has_companion: resolvedHasCompanion,
+      companion_name: resolvedHasCompanion ? companionName : undefined,
     });
 
     return NextResponse.json(createdGuest, { status: 201 });

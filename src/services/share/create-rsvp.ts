@@ -1,4 +1,4 @@
-import { GuestStatus } from "@/services/guests/create-guest";
+import { GuestAttendeeType, GuestStatus } from "@/services/guests/create-guest";
 
 export type CreateRsvpRequest = {
   shareId: string;
@@ -7,6 +7,9 @@ export type CreateRsvpRequest = {
   phone?: string;
   note?: string;
   status: GuestStatus;
+  attendee_type: GuestAttendeeType;
+  has_companion: boolean;
+  companion_name?: string;
 };
 
 export type CreateRsvpResponse = {
@@ -17,6 +20,9 @@ export type CreateRsvpResponse = {
   phone: string | null;
   note: string | null;
   status: GuestStatus;
+  attendee_type: GuestAttendeeType;
+  has_companion: boolean;
+  companion_name: string | null;
   created_at: string;
   is_active: boolean;
 };
@@ -28,6 +34,9 @@ export const createRsvp = async ({
   phone,
   note,
   status,
+  attendee_type,
+  has_companion,
+  companion_name,
 }: CreateRsvpRequest): Promise<CreateRsvpResponse> => {
   const response = await fetch(`/api/share/${shareId}/rsvp`, {
     method: "POST",
@@ -40,6 +49,9 @@ export const createRsvp = async ({
       phone,
       note,
       status,
+      attendee_type,
+      has_companion,
+      companion_name,
     }),
   });
 

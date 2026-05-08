@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/next-auth/auth-options";
 import { ListDAO } from "@/daos/list-dao";
 import { GuestDAO } from "@/daos/guest-dao";
-import { GuestStatus } from "@/services/guests/create-guest";
+import { GuestAttendeeType, GuestStatus } from "@/services/guests/create-guest";
 import { resolveListFeatureFlags } from "@/lib/list-feature-flags-resolver";
 
 type GuestRequestBody = {
@@ -12,10 +12,17 @@ type GuestRequestBody = {
   phone?: unknown;
   note?: unknown;
   status?: unknown;
+  attendee_type?: unknown;
+  has_companion?: unknown;
+  companion_name?: unknown;
 };
 
 const isValidStatus = (value: unknown): value is GuestStatus => {
   return value === "pending" || value === "confirmed" || value === "declined";
+};
+
+const isValidAttendeeType = (value: unknown): value is GuestAttendeeType => {
+  return value === "adult" || value === "child";
 };
 
 const normalizeOptionalString = (value: unknown): string | undefined => {
@@ -42,6 +49,9 @@ const validateGuestPayload = (body: GuestRequestBody) => {
   const phone = normalizeOptionalString(body.phone);
   const note = normalizeOptionalString(body.note);
   const status = body.status;
+  const attendeeType = body.attendee_type ?? "adult";
+  const companionName = normalizeOptionalString(body.companion_name);
+  const hasCompanion = body.has_companion;
 
   if (!name) {
     return { error: "Nome do convidado e obrigatorio", status: 400 as const };
@@ -67,12 +77,32 @@ const validateGuestPayload = (body: GuestRequestBody) => {
     return { error: "Status do convidado invalido", status: 400 as const };
   }
 
+  if (!isValidAttendeeType(attendeeType)) {
+    return { error: "Tipo de convidado invalido", status: 400 as const };
+  }
+
+  if (hasCompanion !== undefined && typeof hasCompanion !== "boolean") {
+    return { error: "Informacao de acompanhante invalida", status: 400 as const };
+  }
+
+  if (companionName && companionName.length > 120) {
+    return { error: "Nome do acompanhante deve ter no maximo 120 caracteres", status: 400 as const };
+  }
+
+  const resolvedHasCompanion = Boolean(hasCompanion);
+  if (resolvedHasCompanion && !companionName) {
+    return { error: "Nome do acompanhante e obrigatorio", status: 400 as const };
+  }
+
   return {
     name,
     email,
     phone,
     note,
     status,
+    attendee_type: attendeeType,
+    has_companion: resolvedHasCompanion,
+    companion_name: resolvedHasCompanion ? companionName : undefined,
   };
 };
 
@@ -149,6 +179,9 @@ export async function POST(
       phone: validatedPayload.phone,
       note: validatedPayload.note,
       status: validatedPayload.status,
+      attendee_type: validatedPayload.attendee_type,
+      has_companion: validatedPayload.has_companion,
+      companion_name: validatedPayload.companion_name,
     });
 
     return NextResponse.json(createdGuest, { status: 201 });

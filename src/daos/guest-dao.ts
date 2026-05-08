@@ -1,6 +1,6 @@
 import { Database } from "@/lib/pg/database";
 import { PoolClient } from "pg";
-import { GuestStatus } from "@/services/guests/create-guest";
+import { GuestAttendeeType, GuestStatus } from "@/services/guests/create-guest";
 
 type GuestRow = {
   id: string | number;
@@ -10,6 +10,9 @@ type GuestRow = {
   phone: string | null;
   note: string | null;
   status: GuestStatus;
+  attendee_type: GuestAttendeeType;
+  has_companion: boolean;
+  companion_name: string | null;
   created_at: string;
   is_active: boolean;
 };
@@ -21,6 +24,9 @@ type CreateGuestInput = {
   phone?: string;
   note?: string;
   status: GuestStatus;
+  attendee_type?: GuestAttendeeType;
+  has_companion?: boolean;
+  companion_name?: string;
 };
 
 type UpdateGuestInput = CreateGuestInput & {
@@ -36,6 +42,9 @@ const mapGuestRow = (row: GuestRow) => {
     phone: row.phone,
     note: row.note,
     status: row.status,
+    attendee_type: row.attendee_type,
+    has_companion: row.has_companion,
+    companion_name: row.companion_name,
     created_at: row.created_at,
     is_active: row.is_active,
   };
@@ -52,6 +61,9 @@ export class GuestDAO {
       phone,
       note,
       status,
+      attendee_type,
+      has_companion,
+      companion_name,
     }: CreateGuestInput,
     client?: PoolClient
   ) {
@@ -59,10 +71,20 @@ export class GuestDAO {
     const runner = client || db;
 
     const { rows } = await runner.query(
-      `INSERT INTO guest (list_id, name, email, phone, note, status)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, list_id, name, email, phone, note, status, created_at, is_active`,
-      [listId, name, email ?? null, phone ?? null, note ?? null, status]
+      `INSERT INTO guest (list_id, name, email, phone, note, status, attendee_type, has_companion, companion_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING id, list_id, name, email, phone, note, status, attendee_type, has_companion, companion_name, created_at, is_active`,
+      [
+        listId,
+        name,
+        email ?? null,
+        phone ?? null,
+        note ?? null,
+        status,
+        attendee_type ?? "adult",
+        has_companion ?? false,
+        has_companion ? companion_name ?? null : null,
+      ]
     );
 
     return mapGuestRow(rows[0] as GuestRow);
@@ -73,7 +95,7 @@ export class GuestDAO {
     const runner = client || db;
 
     const { rows } = await runner.query(
-      `SELECT id, list_id, name, email, phone, note, status, created_at, is_active
+      `SELECT id, list_id, name, email, phone, note, status, attendee_type, has_companion, companion_name, created_at, is_active
        FROM guest
        WHERE list_id = $1 AND is_active = TRUE
        ORDER BY created_at DESC`,
@@ -92,7 +114,7 @@ export class GuestDAO {
     const runner = client || db;
 
     const { rows } = await runner.query(
-      `SELECT id, list_id, name, email, phone, note, status, created_at, is_active
+      `SELECT id, list_id, name, email, phone, note, status, attendee_type, has_companion, companion_name, created_at, is_active
        FROM guest
        WHERE id = $1 AND list_id = $2 AND is_active = TRUE`,
       [guestId, listId]
@@ -114,6 +136,9 @@ export class GuestDAO {
       phone,
       note,
       status,
+      attendee_type,
+      has_companion,
+      companion_name,
     }: UpdateGuestInput,
     client?: PoolClient
   ) {
@@ -126,10 +151,24 @@ export class GuestDAO {
            email = $4,
            phone = $5,
            note = $6,
-           status = $7
+           status = $7,
+           attendee_type = $8,
+           has_companion = $9,
+           companion_name = $10
        WHERE id = $1 AND list_id = $2 AND is_active = TRUE
-       RETURNING id, list_id, name, email, phone, note, status, created_at, is_active`,
-      [guestId, listId, name, email ?? null, phone ?? null, note ?? null, status]
+       RETURNING id, list_id, name, email, phone, note, status, attendee_type, has_companion, companion_name, created_at, is_active`,
+      [
+        guestId,
+        listId,
+        name,
+        email ?? null,
+        phone ?? null,
+        note ?? null,
+        status,
+        attendee_type ?? "adult",
+        has_companion ?? false,
+        has_companion ? companion_name ?? null : null,
+      ]
     );
 
     if (!rows[0]) {

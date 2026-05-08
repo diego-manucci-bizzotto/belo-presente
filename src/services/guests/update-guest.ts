@@ -1,4 +1,4 @@
-import { CreateGuestResponse, GuestStatus } from "@/services/guests/create-guest";
+import { CreateGuestResponse, GuestAttendeeType, GuestStatus } from "@/services/guests/create-guest";
 
 export type UpdateGuestRequest = {
   list_id: string;
@@ -9,6 +9,9 @@ export type UpdateGuestRequest = {
     phone?: string;
     note?: string;
     status: GuestStatus;
+    attendee_type?: GuestAttendeeType;
+    has_companion?: boolean;
+    companion_name?: string;
   };
 };
 

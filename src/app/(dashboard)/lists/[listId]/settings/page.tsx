@@ -14,10 +14,16 @@ import {Button} from "@/components/ui/button";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Skeleton} from "@/components/ui/skeleton";
 import CategoryButton from "@/components/app/(dashboard)/lists/new/category-button";
+import {
+  DEFAULT_LIST_BACKGROUND_THEME,
+  LIST_BACKGROUND_THEME_OPTIONS,
+  LIST_BACKGROUND_THEME_VALUES,
+} from "@/lib/list-background-theme";
 
 const schema = z.object({
   category: z.string().min(1, "Categoria obrigatoria"),
   status: z.enum(["active", "inactive"]),
+  background_theme: z.enum(LIST_BACKGROUND_THEME_VALUES),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -55,6 +61,7 @@ export default function Page() {
     defaultValues: {
       category: "",
       status: "active",
+      background_theme: DEFAULT_LIST_BACKGROUND_THEME,
     },
   });
 
@@ -63,11 +70,12 @@ export default function Page() {
       form.reset({
         category: list.data.category ?? "",
         status: list.data.active ? "active" : "inactive",
+        background_theme: list.data.background_theme ?? DEFAULT_LIST_BACKGROUND_THEME,
       });
     }
   }, [form, list.data]);
 
-  const onSubmit = async ({category, status}: Schema) => {
+  const onSubmit = async ({category, status, background_theme}: Schema) => {
     if (!list.data) {
       return;
     }
@@ -78,6 +86,7 @@ export default function Page() {
       description: list.data.description?.trim() ?? "",
       category: category.trim(),
       active: status === "active",
+      background_theme,
     });
   };
 
@@ -103,7 +112,7 @@ export default function Page() {
         <CardHeader>
           <CardTitle>Configuracoes da lista</CardTitle>
           <CardDescription>
-            Atualize somente o status da lista e o tipo do evento.
+            Atualize o status, tipo do evento e tema da lista publica.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -129,6 +138,35 @@ export default function Page() {
                     <FormMessage/>
                     <FormDescription>
                       Quando desativada, sua lista fica pausada e nao aparece para convidados.
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="background_theme"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Tema de fundo da lista publica</FormLabel>
+                    <FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="w-full md:max-w-sm">
+                          <SelectValue placeholder="Selecione o tema"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LIST_BACKGROUND_THEME_OPTIONS.map((theme) => (
+                            <SelectItem key={theme.value} value={theme.value}>
+                              {theme.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage/>
+                    <FormDescription>
+                      {
+                        LIST_BACKGROUND_THEME_OPTIONS.find((theme) => theme.value === field.value)?.description
+                      }
                     </FormDescription>
                   </FormItem>
                 )}

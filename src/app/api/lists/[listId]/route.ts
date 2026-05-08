@@ -2,12 +2,17 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/next-auth/auth-options";
 import { ListDAO } from "@/daos/list-dao";
+import {
+  isListBackgroundTheme,
+  ListBackgroundTheme,
+} from "@/lib/list-background-theme";
 
 type UpdateListRequestBody = {
   title?: unknown;
   description?: unknown;
   category?: unknown;
   active?: unknown;
+  background_theme?: unknown;
 };
 
 const normalizeString = (value: unknown): string => {
@@ -68,6 +73,8 @@ export async function PATCH(
   const description = normalizeString(body.description);
   const category = normalizeString(body.category);
   const active = body.active;
+  const backgroundThemeRaw = normalizeString(body.background_theme);
+  const hasBackgroundTheme = body.background_theme !== undefined;
 
   if (!title || title.length > 128) {
     return NextResponse.json(
@@ -91,6 +98,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Status da lista invalido" }, { status: 400 });
   }
 
+  if (hasBackgroundTheme && !isListBackgroundTheme(backgroundThemeRaw)) {
+    return NextResponse.json({ error: "Tema de fundo invalido" }, { status: 400 });
+  }
+
+  const backgroundTheme: ListBackgroundTheme | null = hasBackgroundTheme
+    ? (backgroundThemeRaw as ListBackgroundTheme)
+    : null;
+
   try {
     const updatedList = await ListDAO.updateListByIdAndUserId({
       listId,
@@ -99,6 +114,7 @@ export async function PATCH(
       description,
       category,
       active,
+      backgroundTheme,
     });
 
     if (!updatedList) {

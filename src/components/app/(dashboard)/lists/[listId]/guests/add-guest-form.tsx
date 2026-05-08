@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateGuest } from "@/hooks/use-create-guest";
 import { useUpdateGuest } from "@/hooks/use-update-guest";
-import { CreateGuestResponse, GuestStatus } from "@/services/guests/create-guest";
+import { CreateGuestResponse, GuestAttendeeType, GuestStatus } from "@/services/guests/create-guest";
 
 const schema = z.object({
   name: z.string().min(1, "Nome obrigatorio").max(120, "Nome deve ter no maximo 120 caracteres"),
@@ -21,6 +21,19 @@ const schema = z.object({
   status: z.enum(["pending", "confirmed", "declined"], {
     errorMap: () => ({ message: "Selecione um status valido" }),
   }),
+  attendee_type: z.enum(["adult", "child"], {
+    errorMap: () => ({ message: "Selecione um tipo valido" }),
+  }),
+  has_companion: z.boolean(),
+  companion_name: z.string().max(120, "Nome do acompanhante deve ter no maximo 120 caracteres").optional().or(z.literal("")),
+}).superRefine((value, ctx) => {
+  if (value.has_companion && !(value.companion_name || "").trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["companion_name"],
+      message: "Nome do acompanhante e obrigatorio",
+    });
+  }
 });
 
 type FormMode = "create" | "edit";
@@ -37,6 +50,11 @@ const statusLabels: Record<GuestStatus, string> = {
   pending: "Pendente",
   confirmed: "Confirmado",
   declined: "Recusado",
+};
+
+const attendeeTypeLabels: Record<GuestAttendeeType, string> = {
+  adult: "Adulto",
+  child: "Crianca",
 };
 
 export function AddGuestForm({
@@ -58,11 +76,15 @@ export function AddGuestForm({
       phone: guest?.phone ?? "",
       note: guest?.note ?? "",
       status: guest?.status ?? "pending",
+      attendee_type: guest?.attendee_type ?? "adult",
+      has_companion: guest?.has_companion ?? false,
+      companion_name: guest?.companion_name ?? "",
     },
   });
 
   const isPending = createGuest.isPending || updateGuest.isPending;
   const submitLabel = isEditMode ? "Salvar alteracoes" : "Salvar convidado";
+  const hasCompanion = form.watch("has_companion");
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     const payload = {
@@ -71,6 +93,9 @@ export function AddGuestForm({
       phone: data.phone?.trim() || undefined,
       note: data.note?.trim() || undefined,
       status: data.status,
+      attendee_type: data.attendee_type,
+      has_companion: data.has_companion,
+      companion_name: data.has_companion ? data.companion_name?.trim() || undefined : undefined,
     };
 
     if (isEditMode && guest) {
@@ -90,6 +115,9 @@ export function AddGuestForm({
         phone: "",
         note: "",
         status: "pending",
+        attendee_type: "adult",
+        has_companion: false,
+        companion_name: "",
       });
     }
 
@@ -165,6 +193,71 @@ export function AddGuestForm({
               </FormItem>
             )}
           />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="attendee_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(Object.keys(attendeeTypeLabels) as GuestAttendeeType[]).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {attendeeTypeLabels[type]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="has_companion"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Acompanhante</FormLabel>
+                  <Select
+                    value={field.value ? "yes" : "no"}
+                    onValueChange={(value) => field.onChange(value === "yes")}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Vai com acompanhante?" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="no">Nao</SelectItem>
+                      <SelectItem value="yes">Sim</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          {hasCompanion ? (
+            <FormField
+              control={form.control}
+              name="companion_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do acompanhante</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ex: Joao Silva" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : null}
           <FormField
             control={form.control}
             name="note"

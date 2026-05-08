@@ -1,4 +1,5 @@
 import { GetListResponse } from "@/services/lists/get-list";
+import { ListBackgroundTheme } from "@/lib/list-background-theme";
 
 export type UpdateListRequest = {
   listId: string;
@@ -6,6 +7,7 @@ export type UpdateListRequest = {
   description: string;
   category: string;
   active: boolean;
+  background_theme: ListBackgroundTheme;
 };
 
 export const updateList = async ({
@@ -14,6 +16,7 @@ export const updateList = async ({
   description,
   category,
   active,
+  background_theme,
 }: UpdateListRequest): Promise<GetListResponse> => {
   const response = await fetch(`/api/lists/${listId}`, {
     method: "PATCH",
@@ -25,6 +28,7 @@ export const updateList = async ({
       description,
       category,
       active,
+      background_theme,
     }),
   });
 

@@ -1,4 +1,6 @@
 
+import { ListBackgroundTheme } from "@/lib/list-background-theme";
+
 export type GetListsResponse = {
   id: string;
   title: string;
@@ -7,6 +9,7 @@ export type GetListsResponse = {
   user_id: number;
   share_id: string;
   active: boolean;
+  background_theme: ListBackgroundTheme;
 }[];
 
 export const getLists = async (): Promise<GetListsResponse> => {

@@ -1,3 +1,5 @@
+import { ListBackgroundTheme } from "@/lib/list-background-theme";
+
 export type GetSharedListRequest = {
   shareId: string;
 };
@@ -10,6 +12,7 @@ export type SharedListResponse = {
   user_id: number;
   share_id: string;
   active: boolean;
+  background_theme: ListBackgroundTheme;
   features: {
     attendance_confirmation_enabled: boolean;
     notes_enabled: boolean;

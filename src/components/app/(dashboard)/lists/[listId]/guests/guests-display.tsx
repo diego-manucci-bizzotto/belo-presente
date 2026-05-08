@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EllipsisVertical, Mail, Pencil, Phone, Trash2 } from "lucide-react";
 import { GetGuestsResponse } from "@/services/guests/get-guests";
-import { GuestStatus } from "@/services/guests/create-guest";
+import { GuestAttendeeType, GuestStatus } from "@/services/guests/create-guest";
 import { DeleteGuestAlert } from "@/components/app/(dashboard)/lists/[listId]/guests/delete-guest-alert";
 import { EditGuestDialog } from "@/components/app/(dashboard)/lists/[listId]/guests/edit-guest-dialog";
 
@@ -28,6 +28,11 @@ const statusStyles: Record<GuestStatus, string> = {
   pending: "bg-amber-100 text-amber-700 hover:bg-amber-100",
   confirmed: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
   declined: "bg-rose-100 text-rose-700 hover:bg-rose-100",
+};
+
+const attendeeTypeLabels: Record<GuestAttendeeType, string> = {
+  adult: "Adulto",
+  child: "Crianca",
 };
 
 const formatDateTime = (value: string) => {
@@ -72,6 +77,12 @@ export function GuestsDisplay({ listId, guests, isLoading }: GuestsDisplayProps)
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-md font-semibold">{guest.name}</h3>
                 <Badge className={statusStyles[guest.status]}>{statusLabels[guest.status]}</Badge>
+                <Badge variant="outline">{attendeeTypeLabels[guest.attendee_type]}</Badge>
+                <Badge variant="outline">
+                  {guest.has_companion
+                    ? `Com acompanhante${guest.companion_name ? `: ${guest.companion_name}` : ""}`
+                    : "Sem acompanhante"}
+                </Badge>
               </div>
               <Popover>
                 <PopoverTrigger asChild>

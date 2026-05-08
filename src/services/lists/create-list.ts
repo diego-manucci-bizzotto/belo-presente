@@ -1,4 +1,6 @@
 
+import { ListBackgroundTheme } from "@/lib/list-background-theme";
+
 export type CreateListRequest = {
   title: string;
   description: string;
@@ -13,6 +15,7 @@ type CreateListResponse = {
   user_id: number;
   share_id: string;
   active: boolean;
+  background_theme: ListBackgroundTheme;
 }
 
 export const createList = async (list : CreateListRequest) : Promise<CreateListResponse> => {

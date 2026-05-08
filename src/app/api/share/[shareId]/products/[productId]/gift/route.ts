@@ -6,6 +6,7 @@ import { ListDAO } from "@/daos/list-dao";
 import { ListSelectionEventDAO } from "@/daos/list-selection-event-dao";
 import { resolveListFeatureFlags } from "@/lib/list-feature-flags-resolver";
 import { sendSelectionNotificationEmail } from "@/services/notifications/send-selection-notification-email";
+import { isPhoneValid, normalizePhone } from "@/lib/phone";
 
 type GiftIntentRequestBody = {
   guest_name?: unknown;
@@ -53,8 +54,16 @@ export async function POST(
   const body: GiftIntentRequestBody = await req.json();
 
   const guestName = normalizeString(body.guest_name);
-  const guestPhone = normalizeString(body.guest_phone);
+  const guestPhone = normalizePhone(normalizeString(body.guest_phone));
   const guestMessage = normalizeString(body.guest_message);
+
+  if (!guestName) {
+    return NextResponse.json({ error: "Nome obrigatorio" }, { status: 400 });
+  }
+
+  if (!guestPhone || !isPhoneValid(guestPhone)) {
+    return NextResponse.json({ error: "Telefone invalido" }, { status: 400 });
+  }
 
   if (guestName.length > 120) {
     return NextResponse.json({ error: "Nome do convidado invalido" }, { status: 400 });
@@ -94,12 +103,27 @@ export async function POST(
         throw new GiftIntentValidationError("Produto de QR code sem imagem");
       }
 
+      const activeIntent = await GiftIntentDAO.getActiveByProductListAndGuestPhone(
+        product.id,
+        product.list_id,
+        guestPhone,
+        client
+      );
+
+      if (activeIntent) {
+        return {
+          giftIntent: activeIntent,
+          product,
+          alreadySelected: true,
+        };
+      }
+
       const giftIntent = await GiftIntentDAO.createGiftIntent(
         {
           listId: product.list_id,
           productId: product.id,
-          guestName: guestName || "Compra sem identificacao",
-          guestPhone: guestPhone || "Nao informado",
+          guestName,
+          guestPhone,
           guestMessage: guestMessage || undefined,
           purchaseType: product.purchase_type,
           amount: product.price ?? undefined,
@@ -114,7 +138,7 @@ export async function POST(
             listId: product.list_id,
             productId: product.id,
             productName: product.name,
-            guestName: guestName || "Compra sem identificacao",
+            guestName,
             eventType: "selected",
           },
           client
@@ -124,10 +148,11 @@ export async function POST(
       return {
         giftIntent,
         product,
+        alreadySelected: false,
       };
     });
 
-    if (flags.selection_notifications_enabled) {
+    if (flags.selection_notifications_enabled && !result.alreadySelected) {
       await sendSelectionNotificationEmail({
         userId: String(list.user_id),
         listId: String(list.id),
@@ -145,6 +170,7 @@ export async function POST(
           purchase_type: "redirect",
           redirect_url: result.product.affiliate_url || result.product.url,
           gift_intent_id: String(result.giftIntent.id),
+          already_selected: result.alreadySelected,
         },
         { status: 201 }
       );
@@ -158,6 +184,7 @@ export async function POST(
         amount: result.product.price,
         currency: result.product.currency,
         gift_intent_id: String(result.giftIntent.id),
+        already_selected: result.alreadySelected,
       },
       { status: 201 }
     );

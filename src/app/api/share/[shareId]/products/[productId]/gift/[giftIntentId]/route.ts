@@ -6,6 +6,7 @@ import { GiftIntentDAO } from "@/daos/gift-intent-dao";
 import { ListSelectionEventDAO } from "@/daos/list-selection-event-dao";
 import { resolveListFeatureFlags } from "@/lib/list-feature-flags-resolver";
 import { sendSelectionNotificationEmail } from "@/services/notifications/send-selection-notification-email";
+import { isPhoneValid, normalizePhone } from "@/lib/phone";
 
 class GiftIntentCancelValidationError extends Error {
   constructor(message: string) {
@@ -15,7 +16,7 @@ class GiftIntentCancelValidationError extends Error {
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   context: { params: Promise<{ shareId: string; productId: string; giftIntentId: string }> }
 ) {
   const { shareId, productId, giftIntentId } = await context.params;
@@ -34,6 +35,13 @@ export async function DELETE(
 
   if (!flags.share_enabled) {
     return NextResponse.json({ error: "Lista nao encontrada" }, { status: 404 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const guestPhone = normalizePhone(typeof body.guest_phone === "string" ? body.guest_phone : "");
+
+  if (!guestPhone || !isPhoneValid(guestPhone)) {
+    return NextResponse.json({ error: "Telefone invalido" }, { status: 400 });
   }
 
   const db = Database.getInstance();
@@ -59,6 +67,10 @@ export async function DELETE(
 
       if (!giftIntent) {
         throw new GiftIntentCancelValidationError("Selecao de presente nao encontrada");
+      }
+
+      if (normalizePhone(giftIntent.guest_phone) !== guestPhone) {
+        throw new GiftIntentCancelValidationError("Conta sem permissao para desmarcar esta selecao");
       }
 
       if (giftIntent.status === "cancelled") {

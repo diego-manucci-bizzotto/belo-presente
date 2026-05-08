@@ -1,4 +1,5 @@
 import { Database } from "@/lib/pg/database";
+import { ListBackgroundTheme } from "@/lib/list-background-theme";
 import { PoolClient } from "pg";
 
 export class ListDAO {
@@ -8,7 +9,7 @@ export class ListDAO {
     const db = Database.getInstance();
     const runner = client || db;
     const { rows } = await runner.query(
-      "SELECT id, title, description, category, user_id, share_id, active FROM list WHERE user_id = $1",
+      "SELECT id, title, description, category, user_id, share_id, active, background_theme FROM list WHERE user_id = $1",
       [userId]
     );
     return rows;
@@ -47,7 +48,7 @@ export class ListDAO {
     const db = Database.getInstance();
     const runner = client || db;
     const { rows } = await runner.query(
-      "SELECT id, title, description, category, user_id, share_id, active FROM list WHERE id = $1 AND user_id = $2",
+      "SELECT id, title, description, category, user_id, share_id, active, background_theme FROM list WHERE id = $1 AND user_id = $2",
       [listId, userId]
     );
     return rows[0];
@@ -60,7 +61,7 @@ export class ListDAO {
     const db = Database.getInstance();
     const runner = client || db;
     const { rows } = await runner.query(
-      `SELECT id, title, description, category, user_id, share_id, active
+      `SELECT id, title, description, category, user_id, share_id, active, background_theme
        FROM list
        WHERE share_id = $1 AND active = TRUE`,
       [shareId]
@@ -77,6 +78,7 @@ export class ListDAO {
       description,
       category,
       active,
+      backgroundTheme,
     }: {
       listId: string;
       userId: string;
@@ -84,6 +86,7 @@ export class ListDAO {
       description?: string;
       category: string;
       active: boolean;
+      backgroundTheme?: ListBackgroundTheme | null;
     },
     client?: PoolClient
   ) {
@@ -94,10 +97,11 @@ export class ListDAO {
        SET title = $3,
            description = $4,
            category = $5,
-           active = $6
+           active = $6,
+           background_theme = COALESCE($7, background_theme)
        WHERE id = $1 AND user_id = $2
-       RETURNING id, title, description, category, user_id, share_id, active`,
-      [listId, userId, title, description ?? "", category, active]
+       RETURNING id, title, description, category, user_id, share_id, active, background_theme`,
+      [listId, userId, title, description ?? "", category, active, backgroundTheme ?? null]
     );
 
     return rows[0] ?? null;

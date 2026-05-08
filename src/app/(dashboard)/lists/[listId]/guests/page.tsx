@@ -50,8 +50,9 @@ export default function Page() {
       const byName = guest.name.toLowerCase().includes(normalizedFilter);
       const byEmail = guest.email?.toLowerCase().includes(normalizedFilter) ?? false;
       const byPhone = guest.phone?.toLowerCase().includes(normalizedFilter) ?? false;
+      const byCompanion = guest.companion_name?.toLowerCase().includes(normalizedFilter) ?? false;
 
-      return byName || byEmail || byPhone;
+      return byName || byEmail || byPhone || byCompanion;
     });
   }, [filter, guests.data]);
 

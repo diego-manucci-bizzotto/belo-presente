@@ -1,13 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Dancing_Script } from "next/font/google";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import { Loader2Icon } from "lucide-react";
+import {
+  AlertCircle,
+  Gift,
+  Check,
+  ExternalLink,
+  KeyRound,
+  LogOut,
+  Images,
+  Loader2Icon,
+  MessageCircle,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 import { useGetSharedList } from "@/hooks/use-get-shared-list";
 import { useGetSharedProducts } from "@/hooks/use-get-shared-products";
 import { useGetSharedGallery } from "@/hooks/use-get-shared-gallery";
@@ -16,7 +28,6 @@ import { useCancelGiftIntent } from "@/hooks/use-cancel-gift-intent";
 import { useCreateRsvp } from "@/hooks/use-create-rsvp";
 import { useGetSharedNotes } from "@/hooks/use-get-shared-notes";
 import { useCreateSharedNote } from "@/hooks/use-create-shared-note";
-import { useCreateSharedContribution } from "@/hooks/use-create-shared-contribution";
 import { SharedProductResponse } from "@/services/share/get-shared-products";
 import { GetSharedGalleryResponse } from "@/services/share/get-shared-gallery";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -44,17 +55,45 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  DEFAULT_LIST_BACKGROUND_THEME,
+  ListBackgroundTheme,
+  normalizeListBackgroundTheme,
+} from "@/lib/list-background-theme";
+import { isPhoneValid, normalizePhone } from "@/lib/phone";
+import { cn } from "@/lib/utils";
 
 type SharedProduct = SharedProductResponse[number];
+type GuestAccount = {
+  name: string;
+  email: string;
+  phone: string;
+  normalized_phone: string;
+};
+type SharedTab = {
+  value: "presentes" | "galeria" | "recados";
+  label: string;
+  icon: LucideIcon;
+};
 
 const rsvpSchema = z.object({
-  name: z.string().min(2, "Digite seu nome").max(120, "Nome muito longo"),
-  email: z.string().email("Email invalido").optional().or(z.literal("")),
-  phone: z.string().max(30, "Telefone invalido").optional().or(z.literal("")),
   note: z.string().max(512, "Recado muito longo").optional().or(z.literal("")),
   status: z.enum(["confirmed", "declined"], {
     errorMap: () => ({ message: "Selecione um status valido" }),
   }),
+  attendee_type: z.enum(["adult", "child"], {
+    errorMap: () => ({ message: "Selecione um tipo de convidado valido" }),
+  }),
+  has_companion: z.boolean(),
+  companion_name: z.string().max(120, "Nome do acompanhante muito longo").optional().or(z.literal("")),
+}).superRefine((value, ctx) => {
+  if (value.has_companion && !(value.companion_name || "").trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["companion_name"],
+      message: "Digite o nome do acompanhante",
+    });
+  }
 });
 
 type RsvpSchema = z.infer<typeof rsvpSchema>;
@@ -67,15 +106,21 @@ const sharedNoteSchema = z.object({
 
 type SharedNoteSchema = z.infer<typeof sharedNoteSchema>;
 
-const sharedContributionSchema = z.object({
-  contributor_name: z.string().min(2, "Digite seu nome").max(120, "Nome muito longo"),
-  contributor_contact: z.string().max(255, "Contato muito longo").optional().or(z.literal("")),
-  message: z.string().max(512, "Mensagem muito longa").optional().or(z.literal("")),
-  amount: z.coerce.number().positive("Digite um valor maior que zero"),
-  currency: z.string().min(3, "Moeda invalida").max(10, "Moeda invalida"),
+const shareAccountSchema = z.object({
+  name: z.string().min(2, "Digite seu nome").max(120, "Nome muito longo"),
+  email: z.string().email("Email invalido").optional().or(z.literal("")),
+  phone: z.string().min(8, "Digite seu telefone").max(30, "Telefone invalido"),
 });
 
-type SharedContributionSchema = z.infer<typeof sharedContributionSchema>;
+type ShareAccountSchema = z.infer<typeof shareAccountSchema>;
+
+const getRsvpDefaultValues = (): RsvpSchema => ({
+  note: "",
+  status: "confirmed",
+  attendee_type: "adult",
+  has_companion: false,
+  companion_name: "",
+});
 
 const DancingScript = Dancing_Script({
   subsets: ["latin"],
@@ -87,6 +132,25 @@ const modeLabels = {
   qrcode: "QR code",
   redirect: "Loja externa",
 } as const;
+
+const SHARED_BACKGROUND_LAYER_STYLES: Record<ListBackgroundTheme, CSSProperties> = {
+  waves_sides: {
+    backgroundImage: "url('/waves.svg')",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center top",
+    backgroundSize: "cover",
+    backgroundAttachment: "fixed",
+  },
+  waves_top: {
+    backgroundImage: "url('/waves.svg')",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "top center",
+    backgroundSize: "100% auto",
+  },
+  solid: {
+    backgroundImage: "none",
+  },
+};
 
 const formatPrice = (price: number | null, currency: string) => {
   if (price === null) {
@@ -126,6 +190,28 @@ const getInitials = (value: string) => {
     .join("");
 
   return initials || "BP";
+};
+
+const getStoreLabel = (product: SharedProduct) => {
+  if (product.purchase_type === "qrcode") {
+    return "Pagamento direto (PIX)";
+  }
+
+  const preferredUrl = product.url || product.affiliate_url;
+  if (!preferredUrl) {
+    return "Loja nao informada";
+  }
+
+  try {
+    const hostname = new URL(preferredUrl).hostname.replace(/^www\./i, "");
+    return hostname || "Loja nao informada";
+  } catch {
+    return "Loja nao informada";
+  }
+};
+
+const getExternalUrl = (product: SharedProduct) => {
+  return product.affiliate_url || product.url;
 };
 
 function SharedGallerySection({ items }: { items: GetSharedGalleryResponse }) {
@@ -295,179 +381,59 @@ function SharedNotesSection({ shareId }: { shareId: string }) {
   );
 }
 
-function SharedContributionSection({ shareId }: { shareId: string }) {
-  const createSharedContribution = useCreateSharedContribution({ shareId });
-
-  const form = useForm<SharedContributionSchema>({
-    resolver: zodResolver(sharedContributionSchema),
-    defaultValues: {
-      contributor_name: "",
-      contributor_contact: "",
-      message: "",
-      amount: 0,
-      currency: "BRL",
-    },
-  });
-
-  const onSubmit = async ({
-    contributor_name,
-    contributor_contact,
-    message,
-    amount,
-    currency,
-  }: SharedContributionSchema) => {
-    await createSharedContribution.mutateAsync({
-      contributor_name: contributor_name.trim(),
-      contributor_contact: contributor_contact?.trim() || undefined,
-      message: message?.trim() || undefined,
-      amount,
-      currency: currency.trim().toUpperCase(),
-    });
-
-    form.reset({
-      contributor_name: "",
-      contributor_contact: "",
-      message: "",
-      amount: 0,
-      currency: "BRL",
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Contribuicoes</CardTitle>
-        <CardDescription>
-          Contribua com qualquer valor, sem precisar selecionar um presente.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="contributor_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Seu nome</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Digite seu nome" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="contributor_contact"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contato (opcional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Email, telefone ou @usuario" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valor</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="0.01"
-                          step="0.01"
-                          value={field.value}
-                          onChange={(event) => field.onChange(event.target.value)}
-                          placeholder="0.00"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="currency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Moeda</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="BRL" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mensagem (opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder="Ex.: Aproveitem bastante!" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end">
-              <Button type="submit" disabled={createSharedContribution.isPending}>
-                {createSharedContribution.isPending && <Loader2Icon className="animate-spin" />}
-                Enviar contribuicao
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function RsvpDialog({ shareId }: { shareId: string }) {
+function RsvpDialog({
+  shareId,
+  guestAccount,
+  onRequireAccount,
+}: {
+  shareId: string;
+  guestAccount: GuestAccount | null;
+  onRequireAccount: () => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const createRsvp = useCreateRsvp();
 
   const form = useForm<RsvpSchema>({
     resolver: zodResolver(rsvpSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      note: "",
-      status: "confirmed",
-    },
+    defaultValues: getRsvpDefaultValues(),
   });
 
-  const onSubmit = async ({ name, email, phone, note, status }: RsvpSchema) => {
+  useEffect(() => {
+    form.reset(getRsvpDefaultValues());
+  }, [form, guestAccount]);
+
+  const hasCompanion = form.watch("has_companion");
+
+  const onSubmit = async ({ note, status, attendee_type, has_companion, companion_name }: RsvpSchema) => {
+    if (!guestAccount) {
+      onRequireAccount();
+      return;
+    }
+
     await createRsvp.mutateAsync({
       shareId,
-      name: name.trim(),
-      email: email?.trim() || undefined,
-      phone: phone?.trim() || undefined,
+      name: guestAccount.name.trim(),
+      email: guestAccount.email.trim() || undefined,
+      phone: guestAccount.phone.trim() || undefined,
       note: note?.trim() || undefined,
       status,
+      attendee_type,
+      has_companion,
+      companion_name: has_companion ? companion_name?.trim() || undefined : undefined,
     });
 
     setIsOpen(false);
-    form.reset({
-      name: "",
-      email: "",
-      phone: "",
-      note: "",
-      status: "confirmed",
-    });
+    form.reset(getRsvpDefaultValues());
   };
+
+  if (!guestAccount) {
+    return (
+      <Button type="button" className="bg-[#b1563c] text-white hover:bg-[#a0452f]" onClick={onRequireAccount}>
+        <KeyRound className="h-4 w-4" />
+        Confirmar presenca
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -485,28 +451,26 @@ function RsvpDialog({ shareId }: { shareId: string }) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Seu nome</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Digite seu nome" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="rounded-lg border border-[#e4e7ed] bg-[#fafbfc] px-3 py-2 text-sm text-muted-foreground">
+              Confirmando como <span className="font-medium text-foreground">{guestAccount.name}</span>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="attendee_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email (opcional)</FormLabel>
+                    <FormLabel>Tipo</FormLabel>
                     <FormControl>
-                      <Input {...field} type="email" placeholder="voce@email.com" />
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="adult">Adulto</SelectItem>
+                          <SelectItem value="child">Crianca</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -514,18 +478,44 @@ function RsvpDialog({ shareId }: { shareId: string }) {
               />
               <FormField
                 control={form.control}
-                name="phone"
+                name="has_companion"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefone (opcional)</FormLabel>
+                    <FormLabel>Acompanhante</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="(00) 00000-0000" />
+                      <Select
+                        value={field.value ? "yes" : "no"}
+                        onValueChange={(value) => field.onChange(value === "yes")}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Vai com acompanhante?" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="no">Nao</SelectItem>
+                          <SelectItem value="yes">Sim</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+            {hasCompanion ? (
+              <FormField
+                control={form.control}
+                name="companion_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do acompanhante</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Digite o nome do acompanhante" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
             <FormField
               control={form.control}
               name="status"
@@ -576,9 +566,17 @@ function RsvpDialog({ shareId }: { shareId: string }) {
 function GiftDialog({
   shareId,
   product,
+  guestAccount,
+  triggerLabel,
+  triggerClassName,
+  showTriggerCheckIcon = false,
 }: {
   shareId: string;
   product: SharedProduct;
+  guestAccount: GuestAccount;
+  triggerLabel?: string;
+  triggerClassName?: string;
+  showTriggerCheckIcon?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<{
@@ -603,6 +601,8 @@ function GiftDialog({
     const response = await createGiftIntent.mutateAsync({
       shareId,
       productId: product.id,
+      guest_name: guestAccount.name,
+      guest_phone: guestAccount.normalized_phone,
     });
 
     setGiftIntentId(response.gift_intent_id);
@@ -628,6 +628,7 @@ function GiftDialog({
       shareId,
       productId: product.id,
       giftIntentId,
+      guest_phone: guestAccount.normalized_phone,
     });
 
     resetDialog();
@@ -647,10 +648,13 @@ function GiftDialog({
     >
       <DialogTrigger asChild>
         <Button
-          className="bg-[#b1563c] text-white hover:bg-[#a0452f]"
+          className={cn(
+            triggerClassName || "bg-[#b1563c] text-white hover:bg-[#a0452f]",
+          )}
           disabled={product.remaining_quantity <= 0}
         >
-          {product.remaining_quantity <= 0 ? "Indisponivel" : "Presentear"}
+          {showTriggerCheckIcon && product.remaining_quantity > 0 ? <Check className="h-4 w-4" /> : null}
+          {product.remaining_quantity <= 0 ? "Indisponivel" : (triggerLabel || "Presentear")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
@@ -732,10 +736,136 @@ function GiftDialog({
 function SharedProductsSection({
   shareId,
   products,
+  guestAccount,
+  onRequireAccount,
 }: {
   shareId: string;
   products: SharedProductResponse;
+  guestAccount: GuestAccount | null;
+  onRequireAccount: () => void;
 }) {
+  const cancelGiftIntent = useCancelGiftIntent({ shareId });
+  const selectedProducts = useMemo(
+    () => products.filter((product) => product.selected_by_me && product.my_gift_intent_id),
+    [products]
+  );
+
+  const handleUnselect = async (product: SharedProduct) => {
+    if (!guestAccount || !product.my_gift_intent_id) {
+      return;
+    }
+
+    await cancelGiftIntent.mutateAsync({
+      shareId,
+      productId: product.id,
+      giftIntentId: product.my_gift_intent_id,
+      guest_phone: guestAccount.normalized_phone,
+    });
+  };
+
+  const renderProductCard = (product: SharedProduct) => {
+    const storeLabel = getStoreLabel(product);
+    const externalUrl = getExternalUrl(product);
+    const isConfirmed = product.gifted_count > 0;
+    const isSelectedByMe = product.selected_by_me && Boolean(product.my_gift_intent_id);
+
+    return (
+      <Card key={product.id} className="h-full overflow-hidden p-0 border-[#dde0e6] bg-white shadow-sm">
+        <CardContent className="p-3 flex h-full flex-col gap-3">
+          <div className="overflow-hidden rounded-lg border border-[#e4e7ed] bg-[#eceff4]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={product.image_url || "https://picsum.photos/640/640"}
+              alt={product.name}
+              className="h-56 w-full object-cover"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h3 className="line-clamp-2 break-words text-md font-semibold text-foreground">
+              {product.name}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">{modeLabels[product.purchase_type]}</Badge>
+              <Badge variant="outline" className={isConfirmed ? "text-emerald-700" : ""}>
+                {isConfirmed ? `Confirmado (${product.gifted_count})` : "Nao confirmado"}
+              </Badge>
+              {isSelectedByMe ? (
+                <Badge variant="outline" className="text-blue-700">
+                  Selecionado por mim
+                </Badge>
+              ) : null}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-2 text-sm">
+            <p>
+              <span className="text-muted-foreground">Valor: </span>
+              <span className="font-medium">{formatPrice(product.price, product.currency)}</span>
+            </p>
+            <p>
+              <span className="text-muted-foreground">Loja: </span>
+              <span className="font-medium">{storeLabel}</span>
+            </p>
+            <p>
+              <span className="text-muted-foreground">Metodo: </span>
+              <span className="font-medium">{modeLabels[product.purchase_type]}</span>
+            </p>
+            <p>
+              <span className="text-muted-foreground">Restantes: </span>
+              <span className="font-medium">{product.remaining_quantity}</span>
+            </p>
+          </div>
+          <div className="mt-auto flex items-center justify-end gap-2">
+            {externalUrl ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => window.open(externalUrl, "_blank", "noopener,noreferrer")}
+                aria-label="Abrir link da loja"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            ) : null}
+
+            {isSelectedByMe ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  void handleUnselect(product);
+                }}
+                disabled={cancelGiftIntent.isPending}
+              >
+                {cancelGiftIntent.isPending && <Loader2Icon className="animate-spin" />}
+                Desmarcar
+              </Button>
+            ) : guestAccount ? (
+              <GiftDialog
+                shareId={shareId}
+                product={product}
+                guestAccount={guestAccount}
+                triggerLabel="Selecionar"
+                showTriggerCheckIcon
+                triggerClassName="bg-[#b1563c] text-white hover:bg-[#a0452f]"
+              />
+            ) : (
+              <Button
+                type="button"
+                className="bg-[#b1563c] text-white hover:bg-[#a0452f]"
+                onClick={onRequireAccount}
+                disabled={product.remaining_quantity <= 0}
+              >
+                {product.remaining_quantity > 0 ? <Check className="h-4 w-4" /> : null}
+                {product.remaining_quantity <= 0 ? "Indisponivel" : "Selecionar"}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   if (products.length === 0) {
     return (
       <Card className="border-[#e7d4cd] bg-white">
@@ -747,37 +877,46 @@ function SharedProductsSection({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {products.map((product) => (
-        <Card key={product.id} className="overflow-hidden border-[#e7d4cd] bg-white">
-          <CardContent className="p-0">
-            <div className="flex gap-4 p-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={product.image_url || "https://picsum.photos/200"}
-                alt={product.name}
-                className="w-24 h-24 rounded-md object-cover"
-              />
-              <div className="flex-1 space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold">{product.name}</h3>
-                  <Badge variant="outline">{modeLabels[product.purchase_type]}</Badge>
-                </div>
-                {product.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
-                )}
-                <p className="text-sm font-medium">{formatPrice(product.price, product.currency)}</p>
-                <p className="text-xs text-muted-foreground">
-                  Restantes: {product.remaining_quantity}
+    <div className="space-y-4">
+      <h2 className="text-2xl font-semibold text-[#2c3f58]">Todos os Presentes</h2>
+      <Tabs defaultValue="all" className="w-full gap-4">
+        <TabsList className="h-auto w-full md:w-fit">
+          <TabsTrigger value="all">Todos os produtos ({products.length})</TabsTrigger>
+          <TabsTrigger value="selected">Selecionados por mim ({selectedProducts.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {products.map((product) => renderProductCard(product))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="selected">
+          {!guestAccount ? (
+            <Card className="border-[#e7d4cd] bg-white">
+              <CardContent className="py-10 text-center space-y-4">
+                <p className="text-muted-foreground">
+                  Entre com nome e telefone para ver e gerenciar seus produtos selecionados.
                 </p>
-              </div>
+                <Button type="button" variant="outline" onClick={onRequireAccount}>
+                  <KeyRound className="h-4 w-4" />
+                  Identificar-se
+                </Button>
+              </CardContent>
+            </Card>
+          ) : selectedProducts.length === 0 ? (
+            <Card className="border-[#e7d4cd] bg-white">
+              <CardContent className="py-10 text-center">
+                <p className="text-muted-foreground">Voce ainda nao selecionou nenhum produto.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {selectedProducts.map((product) => renderProductCard(product))}
             </div>
-            <div className="border-t px-4 py-3 flex justify-end">
-              <GiftDialog shareId={shareId} product={product} />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -785,8 +924,62 @@ function SharedProductsSection({
 export default function Page() {
   const params = useParams<{ shareId: string }>();
   const shareId = params.shareId;
+  const accountStorageKey = useMemo(() => `belo-presente:share-account:${shareId}`, [shareId]);
+  const [guestAccount, setGuestAccount] = useState<GuestAccount | null>(null);
+  const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
+  const [accessDialogReason, setAccessDialogReason] = useState<string | null>(null);
+
+  const accountForm = useForm<ShareAccountSchema>({
+    resolver: zodResolver(shareAccountSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+    },
+  });
+
+  useEffect(() => {
+    if (!shareId) {
+      return;
+    }
+
+    const raw = window.localStorage.getItem(accountStorageKey);
+    if (!raw) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as Partial<GuestAccount>;
+      const name = typeof parsed.name === "string" ? parsed.name.trim() : "";
+      const email = typeof parsed.email === "string" ? parsed.email.trim() : "";
+      const phone = typeof parsed.phone === "string" ? parsed.phone.trim() : "";
+      const normalizedPhone = normalizePhone(phone);
+
+      if (!name || !isPhoneValid(normalizedPhone)) {
+        window.localStorage.removeItem(accountStorageKey);
+        return;
+      }
+
+      const account: GuestAccount = {
+        name,
+        email,
+        phone,
+        normalized_phone: normalizedPhone,
+      };
+
+      setGuestAccount(account);
+      accountForm.reset({
+        name: account.name,
+        email: account.email,
+        phone: account.phone,
+      });
+    } catch {
+      window.localStorage.removeItem(accountStorageKey);
+    }
+  }, [accountForm, accountStorageKey, shareId]);
+
   const sharedList = useGetSharedList(shareId);
-  const sharedProducts = useGetSharedProducts(shareId);
+  const sharedProducts = useGetSharedProducts(shareId, guestAccount?.normalized_phone);
   const sharedGallery = useGetSharedGallery({ shareId });
 
   const loading =
@@ -805,27 +998,84 @@ export default function Page() {
     return productWithImage?.image_url || galleryItems[0]?.image_url || "";
   }, [galleryItems, products]);
   const listInitials = useMemo(() => getInitials(sharedList.data?.title || ""), [sharedList.data?.title]);
-  const availableTabs = useMemo(() => {
+  const selectedBackgroundTheme = useMemo(
+    () => normalizeListBackgroundTheme(sharedList.data?.background_theme),
+    [sharedList.data?.background_theme]
+  );
+  const defaultBackgroundStyle = SHARED_BACKGROUND_LAYER_STYLES[DEFAULT_LIST_BACKGROUND_THEME];
+  const selectedBackgroundStyle = SHARED_BACKGROUND_LAYER_STYLES[selectedBackgroundTheme];
+  const availableTabs = useMemo<SharedTab[]>(() => {
     const features = sharedList.data?.features;
+    const tabs: SharedTab[] = [
+      { value: "presentes", label: "Presentes", icon: Gift },
+    ];
+
     if (!features) {
-      return [{ value: "presentes", label: "Presentes" }];
+      return tabs;
     }
 
-    return [
-      { value: "presentes", label: "Presentes" },
-      { value: "galeria", label: "Galeria" },
-      ...(features.attendance_confirmation_enabled ? [{ value: "presenca", label: "Presenca" }] : []),
-      ...(features.notes_enabled ? [{ value: "recados", label: "Recados" }] : []),
-      ...(features.contributions_enabled ? [{ value: "contribuicoes", label: "Contribuicoes" }] : []),
-    ];
+    tabs.push({ value: "galeria", label: "Galeria", icon: Images });
+
+    if (features.notes_enabled) {
+      tabs.push({ value: "recados", label: "Recados", icon: MessageCircle });
+    }
+
+    return tabs;
   }, [sharedList.data?.features]);
 
   const defaultTab = availableTabs[0]?.value ?? "presentes";
 
+  const saveGuestAccount = ({ name, email, phone }: ShareAccountSchema) => {
+    const normalizedPhone = normalizePhone(phone);
+
+    if (!isPhoneValid(normalizedPhone)) {
+      accountForm.setError("phone", {
+        message: "Telefone invalido",
+      });
+      return;
+    }
+
+    const account: GuestAccount = {
+      name: name.trim(),
+      email: email?.trim().toLowerCase() || "",
+      phone: phone.trim(),
+      normalized_phone: normalizedPhone,
+    };
+
+    setGuestAccount(account);
+    window.localStorage.setItem(accountStorageKey, JSON.stringify(account));
+    setAccessDialogReason(null);
+    setIsAccessDialogOpen(false);
+  };
+
+  const clearGuestAccount = () => {
+    setGuestAccount(null);
+    window.localStorage.removeItem(accountStorageKey);
+    accountForm.reset({
+      name: "",
+      email: "",
+      phone: "",
+    });
+  };
+
+  const requireGuestAccount = (reason = "Identifique-se para continuar.") => {
+    setAccessDialogReason(reason);
+    setIsAccessDialogOpen(true);
+  };
+
+  const requireGuestAccountForProducts = () => {
+    requireGuestAccount("Identifique-se para selecionar ou desmarcar presentes.");
+  };
+
+  const requireGuestAccountForRsvp = () => {
+    requireGuestAccount("Identifique-se para confirmar presenca.");
+  };
+
   if (loading) {
     return (
-      <div className="bg-wave min-h-svh">
-        <main className="container mx-auto p-6 md:p-10">
+      <div className="relative min-h-svh overflow-hidden bg-transparent">
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={defaultBackgroundStyle} />
+        <main className="relative z-10 mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-10">
           <div className="flex flex-col gap-4">
             <Skeleton className="h-40 w-full bg-gray-200" />
             <Skeleton className="h-24 w-full bg-gray-200" />
@@ -839,8 +1089,9 @@ export default function Page() {
 
   if (!sharedList.data) {
     return (
-      <div className="bg-wave min-h-svh">
-        <main className="container mx-auto p-6 md:p-10">
+      <div className="relative min-h-svh overflow-hidden bg-transparent">
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={defaultBackgroundStyle} />
+        <main className="relative z-10 mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-10">
           <Card>
             <CardHeader>
               <CardTitle>Lista nao encontrada</CardTitle>
@@ -855,87 +1106,214 @@ export default function Page() {
   }
 
   return (
-    <div className="bg-wave min-h-svh">
-      <main className="container mx-auto p-4 md:p-8 flex flex-col gap-5 md:gap-6">
-        <div className="flex items-center gap-2 px-1">
-          <Image src="/logo.svg" alt="logo" width={40} height={40} className="w-8 h-auto" />
-          <p className={`${DancingScript.className} text-3xl leading-none text-primary`}>Belo Presente</p>
-        </div>
+    <div className="relative min-h-svh overflow-x-hidden bg-transparent">
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={selectedBackgroundStyle} />
+      <main className="relative z-10 mx-auto w-full max-w-6xl px-4 py-4 md:px-6 md:py-8">
+        <div className="rounded-3xl border border-[#e6d9d3] bg-white p-4 shadow-sm md:p-6">
+          <div className="flex items-start justify-between gap-3 px-1">
+            <div className="flex items-center gap-2">
+              <Image src="/logo.svg" alt="logo" width={40} height={40} className="w-8 h-auto" />
+              <p className={`${DancingScript.className} text-3xl leading-none text-primary`}>
+                Belo Presente
+              </p>
+            </div>
 
-        <div className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-[#e7d4cd] bg-white">
-            <div className="h-36 w-full sm:h-44 md:h-56">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={bannerImageUrl}
-                alt="Banner da lista"
-                className="h-full w-full object-cover"
-              />
+            <Dialog
+              open={isAccessDialogOpen}
+              onOpenChange={(open) => {
+                setIsAccessDialogOpen(open);
+                if (!open) {
+                  setAccessDialogReason(null);
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "h-9 rounded-full border-[#d8dce3] px-3 text-sm",
+                    guestAccount ? "border-[#e8c9bc] bg-[#fff7f3] text-[#7d3f2e] hover:bg-[#fff1ea]" : ""
+                  )}
+                >
+                  <KeyRound className="h-4 w-4" />
+                  <span className="hidden sm:inline">{guestAccount ? "Acesso ativo" : "Acessar"}</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <UserRound className="h-4 w-4" />
+                    Acesso da lista
+                  </DialogTitle>
+                  <DialogDescription>
+                    {accessDialogReason || "Use nome, email e telefone para identificar seu acesso."}
+                  </DialogDescription>
+                </DialogHeader>
+
+                {guestAccount ? (
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-[#e4e7ed] bg-[#fafbfc] p-3">
+                      <p className="font-semibold">{guestAccount.name}</p>
+                      {guestAccount.email ? (
+                        <p className="text-sm text-muted-foreground">{guestAccount.email}</p>
+                      ) : null}
+                      <p className="text-sm text-muted-foreground">{guestAccount.phone}</p>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button type="button" variant="outline" onClick={clearGuestAccount}>
+                        <LogOut className="h-4 w-4" />
+                        Trocar conta
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Form {...accountForm}>
+                    <form onSubmit={accountForm.handleSubmit(saveGuestAccount)} className="space-y-4">
+                      <div className="space-y-4">
+                        <FormField
+                          control={accountForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Digite seu nome" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={accountForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email (opcional)</FormLabel>
+                              <FormControl>
+                                <Input {...field} type="email" placeholder="voce@email.com" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={accountForm.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Telefone</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="(11) 99999-9999" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <Button type="submit" className="bg-[#b1563c] text-white hover:bg-[#a0452f]">
+                          Entrar / cadastrar
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            <div className="overflow-hidden rounded-xl border border-[#e7d4cd] bg-white">
+              <div className="h-36 w-full sm:h-44 md:h-56">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={bannerImageUrl}
+                  alt="Banner da lista"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </div>
+
+            <div className="-mt-16 flex flex-col items-center gap-3 px-2">
+              <Avatar className="size-28 border-4 border-white shadow-sm">
+                {avatarImageUrl ? <AvatarImage src={avatarImageUrl} alt={sharedList.data.title} /> : null}
+                <AvatarFallback className="bg-[#f3e1da] text-lg font-semibold text-primary">
+                  {listInitials}
+                </AvatarFallback>
+              </Avatar>
+              <h1 className="text-center text-2xl font-bold text-[#22344d] md:text-3xl">
+                {sharedList.data.title}
+              </h1>
+              {sharedList.data.description?.trim() ? (
+                <div className="w-full max-w-3xl rounded-xl border border-[#e7d4cd] bg-white px-4 py-3 text-center">
+                  <p className="text-sm text-muted-foreground md:text-base">{sharedList.data.description}</p>
+                </div>
+              ) : null}
+              <Badge variant="secondary">{sharedList.data.category}</Badge>
             </div>
           </div>
 
-          <div className="-mt-16 flex flex-col items-center gap-3 px-2">
-            <Avatar className="size-28 border-4 border-white shadow-sm">
-              {avatarImageUrl ? <AvatarImage src={avatarImageUrl} alt={sharedList.data.title} /> : null}
-              <AvatarFallback className="bg-[#f3e1da] text-lg font-semibold text-primary">
-                {listInitials}
-              </AvatarFallback>
-            </Avatar>
-            <h1 className="text-center text-2xl font-bold text-primary md:text-3xl">{sharedList.data.title}</h1>
-            {sharedList.data.description?.trim() ? (
-              <div className="w-full max-w-3xl rounded-xl border border-[#e7d4cd] bg-white px-4 py-3 text-center">
-                <p className="text-sm text-muted-foreground md:text-base">{sharedList.data.description}</p>
-              </div>
-            ) : null}
-            <Badge variant="secondary">{sharedList.data.category}</Badge>
-          </div>
-        </div>
-
-        <Tabs defaultValue={defaultTab} className="w-full gap-4">
-          <TabsList className="flex h-auto w-full flex-wrap items-center justify-start gap-2 rounded-xl bg-transparent p-0">
-            {availableTabs.map((tab) => (
-              <TabsTrigger
-                key={tab.value}
-                value={tab.value}
-                className="rounded-xl border border-[#d8d8dc] bg-white px-4 py-2 text-xs font-semibold text-foreground data-[state=active]:border-[#cfd2d7] data-[state=active]:bg-[#eceff3] data-[state=active]:text-primary md:text-sm"
-              >
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          <TabsContent value="presentes">
-            <SharedProductsSection shareId={shareId} products={products} />
-          </TabsContent>
-
-          <TabsContent value="galeria">
-            <SharedGallerySection items={galleryItems} />
-          </TabsContent>
-
-          <TabsContent value="presenca">
-            <Card className="border-[#e7d4cd] bg-white">
-              <CardHeader>
-                <CardTitle>Confirmacao de presenca</CardTitle>
-                <CardDescription>
-                  Presenca e presente sao independentes. Confirme sua ida mesmo sem escolher um produto.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex justify-end">
-                <RsvpDialog shareId={shareId} />
+          {sharedList.data.features.attendance_confirmation_enabled ? (
+            <Card className="mt-6 border-[#e8c9bc] bg-[#fff7f3]">
+              <CardContent className="p-4 md:p-5">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="mt-0.5 h-5 w-5 text-[#b1563c]" />
+                    <div className="space-y-1">
+                      <p className="font-semibold text-[#7d3f2e]">Confirme sua presença</p>
+                      <p className="text-sm text-[#8f5a4b]">
+                        A confirmação de presença é separada do presente. Você pode ir sem comprar
+                        ou comprar sem ir.
+                      </p>
+                    </div>
+                  </div>
+                  <RsvpDialog
+                    shareId={shareId}
+                    guestAccount={guestAccount}
+                    onRequireAccount={requireGuestAccountForRsvp}
+                  />
+                </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          ) : null}
 
-          <TabsContent value="recados">
-            <SharedNotesSection shareId={shareId} />
-          </TabsContent>
+          <Tabs defaultValue={defaultTab} className="mt-6 w-full gap-4">
+            <TabsList className="h-auto w-full md:w-fit">
+              {availableTabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="inline-flex items-center gap-2"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
 
-          <TabsContent value="contribuicoes">
-            <SharedContributionSection shareId={shareId} />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="presentes">
+              <SharedProductsSection
+                shareId={shareId}
+                products={products}
+                guestAccount={guestAccount}
+                onRequireAccount={requireGuestAccountForProducts}
+              />
+            </TabsContent>
+
+            <TabsContent value="galeria">
+              <SharedGallerySection items={galleryItems} />
+            </TabsContent>
+
+            <TabsContent value="recados">
+              <SharedNotesSection shareId={shareId} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </main>
     </div>
   );
 }
-
